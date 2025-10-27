@@ -7,7 +7,7 @@
  *
  * @exports analyzeSpendingAndCheckCapacity - The main function that initiates the spending analysis and capacity check flow.
  * @exports SpendingAnalysisAndCapacityCheckInput - The input type for the analyzeSpendingAndCheckCapacity function.
- * @exports SpendingAnalysisAndCapacityCheckOutput - The output type for the analyzeSpendingAndCheckCapacity function.
+ * @exports SpendingAnalysisAndCapacityCheckOutput - The output type for the analyzeSpendingAndCapacityCheckOutput function.
  */
 
 import {ai} from '@/ai/genkit';
@@ -42,11 +42,11 @@ const spendingAnalysisAndCapacityCheckPrompt = ai.definePrompt({
   Berdasarkan anggaran bulanan mereka, bagaimana anggaran dialokasikan di seluruh kategori, dan pengeluaran mereka saat ini, tentukan apakah mereka memiliki kapasitas untuk menambahkan transaksi.
 
   Pertimbangkan hal berikut:
-  - Jumlah Transaksi: {{{transactionAmount}}}
-  - Kategori Transaksi: {{{transactionCategory}}}
-  - Anggaran Bulanan: {{{monthlyBudget}}}
-  - Alokasi Anggaran Kategori: {{{categoryBudgetAllocation}}}
-  - Pengeluaran Saat Ini per Kategori: {{{currentSpendingByCategory}}}
+  - Jumlah Transaksi: {{transactionAmount}}
+  - Kategori Transaksi: {{transactionCategory}}
+  - Anggaran Bulanan: {{monthlyBudget}}
+  - Alokasi Anggaran Kategori: {{jsonStringify categoryBudgetAllocation}}
+  - Pengeluaran Saat Ini per Kategori: {{jsonStringify currentSpendingByCategory}}
 
   Tentukan apakah pengguna dapat menambahkan transaksi tanpa melebihi anggaran mereka dalam kategori yang ditentukan. Hitung sisa anggaran dalam kategori tersebut setelah transaksi.
 
