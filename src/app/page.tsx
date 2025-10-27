@@ -15,8 +15,7 @@ import {
 import type {Category, Transaction, Budget} from '@/lib/types';
 import {DEFAULT_CATEGORIES} from '@/lib/constants';
 import {nanoid} from 'nanoid';
-import {useAuth, useFirestore, useUser} from '@/firebase';
-import {useCollection, useDoc} from '@/firebase/firestore';
+import {useAuth, useFirestore, useUser, useCollection, useDoc} from '@/firebase';
 import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
 import CategoriesList from '@/components/dashboard/categories-list';
