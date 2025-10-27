@@ -31,6 +31,7 @@ export default function DashboardPage() {
   const firestore = useFirestore();
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [initialBudgetCreated, setInitialBudgetCreated] = useState(false);
   const monthKey = format(currentMonth, 'yyyy-MM');
 
   const budgetQuery =
@@ -77,8 +78,15 @@ export default function DashboardPage() {
   }, [user, userLoading, router]);
 
   useEffect(() => {
-    if (user && firestore && !budgetsLoading && !budgets?.length) {
+    if (
+      user &&
+      firestore &&
+      !budgetsLoading &&
+      !budgets?.length &&
+      !initialBudgetCreated
+    ) {
       const createInitialBudget = async () => {
+        setInitialBudgetCreated(true); // Prevent re-running
         try {
           const newBudgetRef = await addDoc(collection(firestore, 'budgets'), {
             userId: user.uid,
@@ -110,11 +118,20 @@ export default function DashboardPage() {
             description: 'Terjadi kesalahan saat membuat anggaran awal.',
             variant: 'destructive',
           });
+          setInitialBudgetCreated(false); // Allow retry if it fails
         }
       };
       createInitialBudget();
     }
-  }, [user, firestore, monthKey, budgetsLoading, budgets, toast]);
+  }, [
+    user,
+    firestore,
+    monthKey,
+    budgetsLoading,
+    budgets,
+    toast,
+    initialBudgetCreated,
+  ]);
 
   const {totalSpent, totalBudgeted} = useMemo(() => {
     const spent =
@@ -302,6 +319,7 @@ export default function DashboardPage() {
         ? addMonths(currentMonth, 1)
         : subMonths(currentMonth, 1);
     setCurrentMonth(newMonth);
+    setInitialBudgetCreated(false); // Reset for the new month
   };
 
   const loading =
