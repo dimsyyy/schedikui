@@ -20,14 +20,18 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { TrendingUp, TrendingDown, DollarSign, Pencil } from 'lucide-react';
+import { Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Progress } from '../ui/progress';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 type BudgetSummaryProps = {
   monthlyBudget: number;
   totalSpent: number;
   totalBudgeted: number;
   onSetBudget: (amount: number) => void;
+  currentMonth: Date;
+  onChangeMonth: (direction: 'next' | 'prev') => void;
 };
 
 export default function BudgetSummary({
@@ -35,6 +39,8 @@ export default function BudgetSummary({
   totalSpent,
   totalBudgeted,
   onSetBudget,
+  currentMonth,
+  onChangeMonth
 }: BudgetSummaryProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newBudget, setNewBudget] = useState(monthlyBudget.toString());
@@ -59,17 +65,34 @@ export default function BudgetSummary({
     setIsDialogOpen(false);
   }
 
+  const isCurrentMonth = format(new Date(), 'yyyy-MM') === format(currentMonth, 'yyyy-MM');
+
   return (
     <>
       <Card className="sm:col-span-2">
-        <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle>Ringkasan Bulanan</CardTitle>
-           <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(true)}>
-             <Pencil className="h-4 w-4" />
-          </Button>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between items-center">
+             <Button variant="ghost" size="icon" onClick={() => onChangeMonth('prev')}>
+                <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <div className="text-center">
+              <CardTitle className="text-lg capitalize">
+                {format(currentMonth, 'MMMM yyyy', {locale: id})}
+              </CardTitle>
+              <CardDescription>Ringkasan Bulanan</CardDescription>
+            </div>
+            <Button variant="ghost" size="icon" onClick={() => onChangeMonth('next')} disabled={isCurrentMonth}>
+                <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
         </CardHeader>
-        <CardContent>
-          <div className="text-4xl font-bold">{formatCurrency(monthlyBudget)}</div>
+        <CardContent className="text-center">
+           <div className="text-4xl font-bold flex items-center justify-center gap-2">
+            {formatCurrency(monthlyBudget)}
+             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDialogOpen(true)}>
+               <Pencil className="h-4 w-4" />
+            </Button>
+           </div>
           <CardDescription>Total anggaran bulanan Anda.</CardDescription>
         </CardContent>
         <CardFooter>

@@ -22,3 +22,13 @@ export type DefaultCategory = {
   name: string;
   icon: LucideIcon;
 }
+
+export type MonthlyData = {
+  monthlyBudget: number;
+  categories: Category[];
+  transactions: Transaction[];
+};
+
+export type AppData = {
+  [month: string]: MonthlyData; // e.g. "2023-10"
+};

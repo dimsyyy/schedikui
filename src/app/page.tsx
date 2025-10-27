@@ -1,14 +1,16 @@
 'use client';
 
 import {useState, useMemo, useEffect} from 'react';
-import type {Category, Transaction} from '@/lib/types';
+import type {Category, Transaction, MonthlyData, AppData} from '@/lib/types';
 import {DEFAULT_CATEGORIES} from '@/lib/constants';
 import {nanoid} from 'nanoid';
 import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
 import CategoriesList from '@/components/dashboard/categories-list';
 import TransactionsList from '@/components/dashboard/transactions-list';
-import { Sparkles } from 'lucide-react';
+import {Sparkles} from 'lucide-react';
+import {format, subMonths, addMonths} from 'date-fns';
+import { id } from 'date-fns/locale';
 
 // Helper to get data from localStorage
 const getInitialState = <T,>(key: string, defaultValue: T): T => {
@@ -24,58 +26,82 @@ const getInitialState = <T,>(key: string, defaultValue: T): T => {
   }
 };
 
+const getDefaultMonthData = (): MonthlyData => ({
+  monthlyBudget: 5000000,
+  categories: DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0})),
+  transactions: [],
+});
+
 export default function DashboardPage() {
   const [isClient, setIsClient] = useState(false);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [appData, setAppData] = useState<AppData>({});
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  const [monthlyBudget, setMonthlyBudget] = useState<number>(3000);
-  const [categories, setCategories] = useState<Category[]>(
-    DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0 }))
-  );
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-
   useEffect(() => {
     if (isClient) {
-      setMonthlyBudget(getInitialState('monthlyBudget', 3000));
-      const savedCategories = getInitialState<Category[]>('categories', []);
-      if (savedCategories.length > 0) {
-        const categoriesWithIcons = savedCategories.map(cat => {
-            const defaultCat = DEFAULT_CATEGORIES.find(dc => dc.id === cat.id || dc.name === cat.name);
-            return {
-                ...cat,
-                icon: defaultCat ? defaultCat.icon : Sparkles
-            };
-        });
-        setCategories(categoriesWithIcons);
+      const savedData = getInitialState<AppData>('budgetData', {});
+      // Data migration for old users
+      if (!savedData[format(new Date(), 'yyyy-MM')] && (localStorage.getItem('monthlyBudget') || localStorage.getItem('categories'))) {
+        const oldBudget = getInitialState('monthlyBudget', 5000000);
+        const oldCategories = getInitialState<Category[]>('categories', []);
+        const oldTransactions = getInitialState<Transaction[]>('transactions', []);
+
+        const monthKey = format(new Date(), 'yyyy-MM');
+        const migratedData: AppData = {
+          ...savedData,
+          [monthKey]: {
+            monthlyBudget: oldBudget,
+            categories: oldCategories.length > 0 ? oldCategories : DEFAULT_CATEGORIES.map(c => ({ ...c, budget: 0, spent: 0 })),
+            transactions: oldTransactions
+          }
+        };
+        setAppData(migratedData);
+
+        // Clean up old data
+        localStorage.removeItem('monthlyBudget');
+        localStorage.removeItem('categories');
+        localStorage.removeItem('transactions');
       } else {
-         setCategories(DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0 })));
+        setAppData(savedData);
       }
-      setTransactions(getInitialState('transactions', []));
     }
   }, [isClient]);
 
   // Persist state to localStorage
   useEffect(() => {
-    if (isClient) {
-      window.localStorage.setItem('monthlyBudget', JSON.stringify(monthlyBudget));
+    if (isClient && Object.keys(appData).length > 0) {
+      const dataToSave: AppData = {};
+       for (const month in appData) {
+        dataToSave[month] = {
+          ...appData[month],
+          categories: appData[month].categories.map(({ icon, ...rest }) => rest),
+        }
+      }
+      window.localStorage.setItem('budgetData', JSON.stringify(dataToSave));
     }
-  }, [monthlyBudget, isClient]);
+  }, [appData, isClient]);
 
-  useEffect(() => {
-    if (isClient) {
-       const categoriesToSave = categories.map(({ icon, ...rest }) => rest);
-      window.localStorage.setItem('categories', JSON.stringify(categoriesToSave));
-    }
-  }, [categories, isClient]);
+  const monthKey = format(currentMonth, 'yyyy-MM');
 
-  useEffect(() => {
-    if (isClient) {
-      window.localStorage.setItem('transactions', JSON.stringify(transactions));
-    }
-  }, [transactions, isClient]);
+  // Memoize current month data
+  const currentMonthData = useMemo(() => {
+    const data = appData[monthKey] || getDefaultMonthData();
+    // Ensure categories have icons
+    const categoriesWithIcons = data.categories.map(cat => {
+      const defaultCat = DEFAULT_CATEGORIES.find(dc => dc.id === cat.id || dc.name === cat.name);
+      return {
+        ...cat,
+        icon: defaultCat ? defaultCat.icon : Sparkles
+      };
+    });
+    return { ...data, categories: categoriesWithIcons };
+  }, [appData, monthKey]);
+
+  const {monthlyBudget, categories, transactions} = currentMonthData;
 
   const {totalSpent, totalBudgeted} = useMemo(() => {
     const spent = categories.reduce((sum, cat) => sum + (cat.spent || 0), 0);
@@ -83,14 +109,25 @@ export default function DashboardPage() {
     return {totalSpent: spent, totalBudgeted: budgeted};
   }, [categories]);
 
-  const handleSetBudget = (amount: number) => {
-    setMonthlyBudget(amount);
+  const updateMonthData = (month: string, data: Partial<MonthlyData>) => {
+    setAppData(prev => ({
+      ...prev,
+      [month]: {
+        ...(prev[month] || getDefaultMonthData()),
+        ...data,
+      }
+    }));
   };
-  
+
+  const handleSetBudget = (amount: number) => {
+    updateMonthData(monthKey, { monthlyBudget: amount });
+  };
+
   const handleSetCategoryBudget = (categoryId: string, budget: number) => {
-    setCategories(prev =>
-      prev.map(c => (c.id === categoryId ? {...c, budget} : c))
+    const newCategories = categories.map(c =>
+      c.id === categoryId ? {...c, budget} : c
     );
+    updateMonthData(monthKey, { categories: newCategories });
   };
 
   const handleAddCategory = (name: string, budget: number, icon: React.ComponentType<{ className?: string }>) => {
@@ -101,14 +138,14 @@ export default function DashboardPage() {
       icon,
       spent: 0
     };
-    setCategories(prev => [...prev, newCategory]);
-  };
-  
-  const handleDeleteCategory = (categoryId: string) => {
-    setCategories(prev => prev.filter(c => c.id !== categoryId));
-    setTransactions(prev => prev.filter(t => t.categoryId !== categoryId));
+    updateMonthData(monthKey, { categories: [...categories, newCategory] });
   };
 
+  const handleDeleteCategory = (categoryId: string) => {
+    const newCategories = categories.filter(c => c.id !== categoryId);
+    const newTransactions = transactions.filter(t => t.categoryId !== categoryId);
+    updateMonthData(monthKey, { categories: newCategories, transactions: newTransactions });
+  };
 
   const handleAddTransaction = (
     amount: number,
@@ -127,13 +164,18 @@ export default function DashboardPage() {
       date: new Date().toISOString(),
     };
 
-    setTransactions(prev => [newTransaction, ...prev]);
-    setCategories(prev =>
-      prev.map(c =>
-        c.id === categoryId ? {...c, spent: c.spent + amount} : c
-      )
+    const newTransactions = [newTransaction, ...transactions];
+    const newCategories = categories.map(c =>
+      c.id === categoryId ? {...c, spent: c.spent + amount} : c
     );
+    
+    updateMonthData(monthKey, { transactions: newTransactions, categories: newCategories });
   };
+
+  const changeMonth = (direction: 'next' | 'prev') => {
+      const newMonth = direction === 'next' ? addMonths(currentMonth, 1) : subMonths(currentMonth, 1);
+      setCurrentMonth(newMonth);
+  }
 
   if (!isClient) {
     return null; // or a loading skeleton
@@ -149,18 +191,24 @@ export default function DashboardPage() {
             totalSpent={totalSpent}
             totalBudgeted={totalBudgeted}
             onSetBudget={handleSetBudget}
+            currentMonth={currentMonth}
+            onChangeMonth={changeMonth}
           />
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <div className="xl:col-span-2">
-             <TransactionsList
-                transactions={transactions}
-                categories={categories}
-                onAddTransaction={handleAddTransaction}
-                monthlyBudget={monthlyBudget}
-                categoryBudgetAllocation={Object.fromEntries(categories.map(c => [c.name, c.budget]))}
-                currentSpendingByCategory={Object.fromEntries(categories.map(c => [c.name, c.spent]))}
-             />
+            <TransactionsList
+              transactions={transactions}
+              categories={categories}
+              onAddTransaction={handleAddTransaction}
+              monthlyBudget={monthlyBudget}
+              categoryBudgetAllocation={Object.fromEntries(
+                categories.map(c => [c.name, c.budget])
+              )}
+              currentSpendingByCategory={Object.fromEntries(
+                categories.map(c => [c.name, c.spent])
+              )}
+            />
           </div>
           <div>
             <CategoriesList
