@@ -87,28 +87,15 @@ export default function DashboardPage() {
       const createInitialBudget = async () => {
         setInitialBudgetCreated(true); // Prevent re-running
         try {
-          const newBudgetRef = await addDoc(collection(firestore, 'budgets'), {
+          await addDoc(collection(firestore, 'budgets'), {
             userId: user.uid,
             month: monthKey,
-            monthlyBudget: 5000000,
+            monthlyBudget: 0,
           });
 
-          const batch = writeBatch(firestore);
-          DEFAULT_CATEGORIES.forEach(category => {
-            const categoryRef = doc(
-              collection(firestore, 'budgets', newBudgetRef.id, 'categories')
-            );
-            batch.set(categoryRef, {
-              name: category.name,
-              iconName: category.iconName,
-              budget: 0,
-              spent: 0,
-            });
-          });
-          await batch.commit();
           toast({
-            title: 'Anggaran Dibuat',
-            description: `Anggaran untuk bulan ${monthKey} telah dibuat.`,
+            title: 'Selamat Datang!',
+            description: `Anggaran untuk bulan ${monthKey} telah dibuat. Silakan atur anggaran Anda.`,
           });
         } catch (error) {
           console.error('Error creating initial budget:', error);
