@@ -14,7 +14,6 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import type {Category, Transaction, Budget} from '@/lib/types';
-import {DEFAULT_CATEGORIES} from '@/lib/constants';
 import {useAuth, useFirestore, useUser, useCollection} from '@/firebase';
 import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
@@ -87,7 +86,7 @@ export default function DashboardPage() {
       const createInitialBudget = async () => {
         setInitialBudgetCreated(true); // Prevent re-running
         try {
-          await addDoc(collection(firestore, 'budgets'), {
+          const newBudgetRef = await addDoc(collection(firestore, 'budgets'), {
             userId: user.uid,
             month: monthKey,
             monthlyBudget: 0,
