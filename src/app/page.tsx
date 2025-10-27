@@ -4,7 +4,7 @@ import {useState, useMemo, useEffect} from 'react';
 import type {Category, Transaction} from '@/lib/types';
 import {DEFAULT_CATEGORIES} from '@/lib/constants';
 import {nanoid} from 'nanoid';
-import {Header} from '@/components/dashboard/header';
+import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
 import SpendingReport from '@/components/dashboard/spending-report';
 import CategoriesList from '@/components/dashboard/categories-list';
@@ -31,17 +31,19 @@ export default function DashboardPage() {
     setIsClient(true);
   }, []);
 
-  const [monthlyBudget, setMonthlyBudget] = useState<number>(() =>
-    getInitialState('monthlyBudget', 3000)
+  const [monthlyBudget, setMonthlyBudget] = useState<number>(3000);
+  const [categories, setCategories] = useState<Category[]>(
+    DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0 }))
   );
-  const [categories, setCategories] = useState<Category[]>(() =>
-    getInitialState('categories', 
-      DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0 }))
-    )
-  );
-  const [transactions, setTransactions] = useState<Transaction[]>(() =>
-    getInitialState('transactions', [])
-  );
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    if (isClient) {
+      setMonthlyBudget(getInitialState('monthlyBudget', 3000));
+      setCategories(getInitialState('categories', DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0 }))));
+      setTransactions(getInitialState('transactions', []));
+    }
+  }, [isClient]);
 
   // Persist state to localStorage
   useEffect(() => {

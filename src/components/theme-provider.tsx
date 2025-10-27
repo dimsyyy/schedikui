@@ -4,6 +4,15 @@ import * as React from 'react';
 
 type Theme = 'dark' | 'light' | 'system';
 
+type ThemeProviderProps = {
+  children: React.ReactNode;
+  defaultTheme?: Theme;
+  storageKey?: string;
+  attribute?: 'class';
+  enableSystem?: boolean;
+  disableTransitionOnChange?: boolean;
+};
+
 type ThemeProviderState = {
   theme: Theme;
   setTheme: (theme: Theme) => void;
@@ -22,17 +31,13 @@ export function ThemeProvider({
   defaultTheme = 'system',
   storageKey = 'vite-ui-theme',
   ...props
-}: {
-  children: React.ReactNode;
-  defaultTheme?: Theme;
-  storageKey?: string;
-  attribute?: 'class';
-  enableSystem?: boolean;
-  disableTransitionOnChange?: boolean;
-}) {
-  const [theme, setTheme] = React.useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
-  );
+}: ThemeProviderProps) {
+  const [theme, setTheme] = React.useState<Theme>('system');
+
+  React.useEffect(() => {
+    const storedTheme = (localStorage.getItem(storageKey) as Theme) || defaultTheme;
+    setTheme(storedTheme);
+  }, [storageKey, defaultTheme]);
 
   React.useEffect(() => {
     const root = window.document.documentElement;
