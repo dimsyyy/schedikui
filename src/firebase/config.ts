@@ -9,11 +9,10 @@
 // See https://firebase.google.com/docs/web/setup#config-object for more details.
 
 export const firebaseConfig = {
-  "apiKey": "mock-api-key",
-  "authDomain": "mock-auth-domain",
-  "projectId": "mock-project-id",
-  "storageBucket": "mock-storage-bucket",
-  "messagingSenderId": "mock-messaging-sender-id",
-  "appId": "mock-app-id",
-  "measurementId": "mock-measurement-id"
+  "projectId": "studio-3017635330-1ac18",
+  "appId": "1:846043118353:web:fadd0ab205b072c3b76ab0",
+  "apiKey": "AIzaSyCoz5uTGVOEyHF9mkzlmX_63LKM5Tq8TFA",
+  "authDomain": "studio-3017635330-1ac18.firebaseapp.com",
+  "measurementId": "",
+  "messagingSenderId": "846043118353"
 };
