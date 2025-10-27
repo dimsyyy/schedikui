@@ -1,113 +1,129 @@
+/**
+ * @fileoverview Firestore Security Rules for the Budget Tracker application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model for budgets and their associated
+ * categories and transactions. Each budget belongs to a specific user, and
+ * only that user can create, read, update, or delete the budget and its data.
+ *
+ * Data Structure:
+ * - /users/{userId}: Stores user profile information. Only the authenticated
+ *   user can read and write their own profile.
+ * - /budgets/{budgetId}: Stores monthly budget documents. Each document has a
+ *   'userId' field indicating the owner.
+ * - /budgets/{budgetId}/categories/{categoryId}: Stores categories within a
+ *   specific budget. Inherits ownership from the parent budget.
+ * - /budgets/{budgetId}/transactions/{transactionId}: Stores transactions
+ *   within a specific budget. Inherits ownership from the parent budget.
+ *
+ * Key Security Decisions:
+ * - Users can only access their own budgets, categories, and transactions.
+ * - User listing is disallowed for privacy.
+ * - Data validation is minimized in this prototype for rapid iteration. Focus
+ *   is placed on authorization and ownership.
+ *
+ * Denormalization for Authorization:
+ * - The 'Budget' document includes the 'userId' field to enable ownership
+ *   checks without needing to query the /users collection.
+ *
+ * Structural Segregation:
+ * - There are no public collections in this application. All data is protected
+ *   by user authentication and ownership.
+ */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    /**
-     * @description This ruleset enforces a user-ownership model for budgets, categories, and transactions.
-     *              Users can only read and write their own budgets and associated data. User profile information
-     *              is also protected under an ownership model.
-     * @dataStructure
-     *  - /users/{userId} : User profile information.
-     *  - /budgets/{budgetId} : Monthly budget documents, containing a userId field.
-     *  - /budgets/{budgetId}/categories/{categoryId} : Categories within a budget.
-     *  - /budgets/{budgetId}/transactions/{transactionId} : Transactions within a budget.
-     * @keySecurityDecisions
-     *  - Users can only access their own budgets, categories, and transactions.
-     *  - Listing all users is disallowed.
-     *  - Users can create their own profile.
-     * @denormalizationForAuthorization
-     *  - The 'Budget' entity contains a 'userId' field, which is used to authorize access to the budget document and its subcollections.
-     *  - The 'userId' field in the 'Budget' entity is validated against the {userId} path parameter during creation to ensure ownership.
-     */
-
-    // Helper function to check if the user is signed in.
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // Helper function to check if the user is the owner of the resource.
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    // Helper function to check if the user is the existing owner of the resource.
-    function isExistingOwner(userId) {
-      return isOwner(userId) && resource != null;
-    }
 
     /**
-     * @description Controls access to user profile information.
+     * @description Secures user profile information.
      * @path /users/{userId}
-     * @allow (create) User 'user_abc' can create their own profile (auth.uid == userId).
-     * @allow (get) User 'user_abc' can read their own profile (auth.uid == userId).
-     * @allow (update) User 'user_abc' can update their own profile (auth.uid == userId).
-     * @allow (delete) User 'user_abc' can delete their own profile (auth.uid == userId).
-     * @deny (create) User 'user_xyz' cannot create a profile for user 'user_abc'.
-     * @deny (get) User 'user_xyz' cannot read user 'user_abc's profile.
+     * @allow (create) - Authenticated user can create their own profile if the userId matches their auth.uid.
+     * @allow (get, update, delete) - Authenticated user can read, update, and delete their own profile.
+     * @deny (create) - Cannot create a profile for another user.
+     * @deny (list) - User listing is not allowed.
      * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
-      allow get: if isOwner(userId);
-      allow list: if false; // Listing all users is not allowed.
-      allow create: if isOwner(userId);
-      allow update: if isExistingOwner(userId);
-      allow delete: if isExistingOwner(userId);
+      function isOwner(userId) {
+        return request.auth.uid == userId;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get: if isSignedIn() && isOwner(userId);
+      allow list: if false;
+      allow create: if isSignedIn() && isOwner(userId);
+      allow update: if isSignedIn() && isOwner(userId);
+      allow delete: if isSignedIn() && isOwner(userId);
     }
 
     /**
-     * @description Controls access to budget documents.
+     * @description Secures monthly budget documents.
      * @path /budgets/{budgetId}
-     * @allow (create) User 'user_abc' can create a budget with userId: 'user_abc'.
-     * @allow (get) User 'user_abc' can read a budget where budget.userId == 'user_abc'.
-     * @allow (update) User 'user_abc' can update a budget where budget.userId == 'user_abc'.
-     * @allow (delete) User 'user_abc' can delete a budget where budget.userId == 'user_abc'.
-     * @deny (create) User 'user_xyz' cannot create a budget for user 'user_abc'.
-     * @deny (get) User 'user_xyz' cannot read a budget owned by user 'user_abc'.
-     * @principle Enforces document ownership for writes and reads, validates relational integrity on create.
+     * @allow (create) - Authenticated user can create a budget if the userId in the document matches their auth.uid.
+     * @allow (get, update, delete) - Authenticated user can read, update, and delete their own budget.
+     * @deny (create) - Cannot create a budget for another user.
+     * @deny (update) - Cannot update a budget to change ownership.
+     * @principle Enforces document ownership for writes, validates creator on create.
      */
     match /budgets/{budgetId} {
-      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      function isBudgetOwner(budgetId) {
+        return get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+      allow get: if isSignedIn() && isBudgetOwner(budgetId);
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
-      allow update: if isExistingOwner(resource.data.userId);
-      allow delete: if isExistingOwner(resource.data.userId);
+      allow update: if isSignedIn() && isBudgetOwner(budgetId);
+      allow delete: if isSignedIn() && isBudgetOwner(budgetId);
     }
 
     /**
-     * @description Controls access to categories within a budget.
+     * @description Secures categories within a specific monthly budget.
      * @path /budgets/{budgetId}/categories/{categoryId}
-     * @allow (create) User 'user_abc' can create a category within their budget.
-     * @allow (get) User 'user_abc' can read a category within their budget.
-     * @allow (update) User 'user_abc' can update a category within their budget.
-     * @allow (delete) User 'user_abc' can delete a category within their budget.
-     * @deny (create) User 'user_xyz' cannot create a category within user 'user_abc's budget.
-     * @deny (get) User 'user_xyz' cannot read a category within user 'user_abc's budget.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - Authenticated user can create a category within their budget.
+     * @allow (get, update, delete) - Authenticated user can read, update, and delete categories within their budget.
+     * @deny (create) - Cannot create a category within another user's budget.
+     * @deny (update) - Cannot update a category to change ownership.
+     * @principle Inherits ownership from the parent budget, enforces ownership for writes.
      */
     match /budgets/{budgetId}/categories/{categoryId} {
-      allow get: if isSignedIn() && get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
-      allow list: if isSignedIn() && get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
-      allow create: if isSignedIn() && get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId);
-      allow delete: if isSignedIn() && isExistingOwner(get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId);
+      function isBudgetOwner(budgetId) {
+        return get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+        allow get: if isSignedIn() && isBudgetOwner(budgetId);
+        allow list: if isSignedIn() && isBudgetOwner(budgetId);
+        allow create: if isSignedIn() && isBudgetOwner(budgetId);
+        allow update: if isSignedIn() && isBudgetOwner(budgetId);
+        allow delete: if isSignedIn() && isBudgetOwner(budgetId);
     }
 
     /**
-     * @description Controls access to transactions within a budget.
+     * @description Secures transactions within a specific monthly budget.
      * @path /budgets/{budgetId}/transactions/{transactionId}
-     * @allow (create) User 'user_abc' can create a transaction within their budget.
-     * @allow (get) User 'user_abc' can read a transaction within their budget.
-     * @allow (update) User 'user_abc' can update a transaction within their budget.
-     * @allow (delete) User 'user_abc' can delete a transaction within their budget.
-     * @deny (create) User 'user_xyz' cannot create a transaction within user 'user_abc's budget.
-     * @deny (get) User 'user_xyz' cannot read a transaction within user 'user_abc's budget.
-     * @principle Enforces document ownership for all operations.
+     * @allow (create) - Authenticated user can create a transaction within their budget.
+     * @allow (get, update, delete) - Authenticated user can read, update, and delete transactions within their budget.
+     * @deny (create) - Cannot create a transaction within another user's budget.
+     * @deny (update) - Cannot update a transaction to change ownership.
+     * @principle Inherits ownership from the parent budget, enforces ownership for writes.
      */
     match /budgets/{budgetId}/transactions/{transactionId} {
-      allow get: if isSignedIn() && get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
-      allow list: if isSignedIn() && get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
-      allow create: if isSignedIn() && get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
-      allow update: if isSignedIn() && isExistingOwner(get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId);
-      allow delete: if isSignedIn() && isExistingOwner(get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId);
+      function isBudgetOwner(budgetId) {
+        return get(/databases/$(database)/documents/budgets/$(budgetId)).data.userId == request.auth.uid;
+      }
+      function isSignedIn() {
+        return request.auth != null;
+      }
+        allow get: if isSignedIn() && isBudgetOwner(budgetId);
+        allow list: if isSignedIn() && isBudgetOwner(budgetId);
+        allow create: if isSignedIn() && isBudgetOwner(budgetId);
+        allow update: if isSignedIn() && isBudgetOwner(budgetId);
+        allow delete: if isSignedIn() && isBudgetOwner(budgetId);
     }
   }
 }

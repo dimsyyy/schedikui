@@ -35,6 +35,7 @@ export default function DashboardPage() {
   const [quoteLoading, setQuoteLoading] = useState(true);
 
   useEffect(() => {
+    // Redirect to login if not authenticated after loading
     if (!user && !userLoading) {
       router.push('/login');
     }
@@ -322,7 +323,8 @@ export default function DashboardPage() {
   const loading =
     userLoading || budgetsLoading || categoriesLoading || transactionsLoading;
 
-  if (loading || !user) {
+  // Show a loading screen while user status or data is being fetched.
+  if (loading || userLoading || !user) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40">
         <p>Loading...</p>
@@ -330,6 +332,7 @@ export default function DashboardPage() {
     );
   }
 
+  // Handle data loading errors
   if (budgetError || categoriesError || transactionsError) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-destructive/10 text-destructive">
