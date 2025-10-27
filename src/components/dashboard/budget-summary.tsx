@@ -1,13 +1,13 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useMemo} from 'react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Dialog,
@@ -17,21 +17,19 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Pencil, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
-import { Progress } from '../ui/progress';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Pencil, AlertTriangle} from 'lucide-react';
+import {Progress} from '../ui/progress';
+import {format} from 'date-fns';
+import {id} from 'date-fns/locale';
 
 type BudgetSummaryProps = {
   monthlyBudget: number;
   totalSpent: number;
   totalBudgeted: number;
   onSetBudget: (amount: number) => void;
-  currentMonth: Date;
-  onChangeMonth: (direction: 'next' | 'prev') => void;
 };
 
 export default function BudgetSummary({
@@ -39,15 +37,18 @@ export default function BudgetSummary({
   totalSpent,
   totalBudgeted,
   onSetBudget,
-  currentMonth,
-  onChangeMonth
 }: BudgetSummaryProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newBudget, setNewBudget] = useState(monthlyBudget.toString());
 
   const remainingBudget = monthlyBudget - totalSpent;
-  const spendingProgress = monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
-  const remainingPercentage = monthlyBudget > 0 ? (remainingBudget / monthlyBudget) * 100 : 100;
+  const spendingProgress =
+    monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
+  const remainingPercentage =
+    monthlyBudget > 0 ? (remainingBudget / monthlyBudget) * 100 : 100;
+  
+  const currentMonthDate = useMemo(() => new Date(), []);
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -57,59 +58,61 @@ export default function BudgetSummary({
       maximumFractionDigits: 0,
     }).format(amount);
   };
-  
+
   const handleSave = () => {
     const amount = parseFloat(newBudget);
-    if(!isNaN(amount)) {
+    if (!isNaN(amount)) {
       onSetBudget(amount);
     }
     setIsDialogOpen(false);
-  }
-
-  const isCurrentMonth = format(new Date(), 'yyyy-MM') === format(currentMonth, 'yyyy-MM');
+  };
 
   return (
     <>
       <Card className="sm:col-span-2">
         <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
-             <Button variant="ghost" size="icon" onClick={() => onChangeMonth('prev')}>
-                <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <div className="text-center">
+          <div className="flex justify-center items-center text-center">
+            <div>
               <CardTitle className="text-lg capitalize">
-                {format(currentMonth, 'MMMM yyyy', {locale: id})}
+                {format(currentMonthDate, 'MMMM yyyy', {locale: id})}
               </CardTitle>
               <CardDescription>Ringkasan Bulanan</CardDescription>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => onChangeMonth('next')} disabled={isCurrentMonth}>
-                <ChevronRight className="h-5 w-5" />
-            </Button>
           </div>
         </CardHeader>
         <CardContent className="text-center">
-           <div className="text-4xl font-bold flex items-center justify-center gap-2">
+          <div className="text-4xl font-bold flex items-center justify-center gap-2">
             {formatCurrency(monthlyBudget)}
-             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setIsDialogOpen(true)}>
-               <Pencil className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <Pencil className="h-4 w-4" />
             </Button>
-           </div>
+          </div>
           <CardDescription>Total anggaran bulanan Anda.</CardDescription>
         </CardContent>
         <CardFooter>
-            <div className="w-full">
-                <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                    <span>Terpakai: {formatCurrency(totalSpent)}</span>
-                    <span>Sisa: {formatCurrency(remainingBudget)}</span>
-                </div>
-                <Progress value={spendingProgress} aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`} />
+          <div className="w-full">
+            <div className="flex justify-between text-sm text-muted-foreground mb-1">
+              <span>Terpakai: {formatCurrency(totalSpent)}</span>
+              <span>Sisa: {formatCurrency(remainingBudget)}</span>
             </div>
+            <Progress
+              value={spendingProgress}
+              aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`}
+            />
+          </div>
         </CardFooter>
       </Card>
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>Total Pengeluaran</CardDescription>
-          <CardTitle className="text-3xl">{formatCurrency(totalSpent)}</CardTitle>
+          <CardTitle className="text-3xl">
+            {formatCurrency(totalSpent)}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-xs text-muted-foreground">
@@ -120,16 +123,27 @@ export default function BudgetSummary({
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>Sisa Anggaran</CardDescription>
-          <CardTitle className={`text-3xl ${remainingBudget < 0 ? 'text-destructive' : 'text-accent-foreground'}`}>
+          <CardTitle
+            className={`text-3xl ${
+              remainingBudget < 0 ? 'text-destructive' : 'text-accent-foreground'
+            }`}
+          >
             {formatCurrency(remainingBudget)}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`text-xs ${remainingBudget < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+          <div
+            className={`text-xs ${
+              remainingBudget < 0 ? 'text-destructive' : 'text-muted-foreground'
+            }`}
+          >
             {remainingBudget < 0 ? (
               'Anda melebihi anggaran'
             ) : remainingPercentage <= 30 ? (
-                <span className="text-yellow-600 flex items-center gap-1"><AlertTriangle className="h-4 w-4" />Saatnya berhemat!</span>
+              <span className="text-yellow-600 flex items-center gap-1">
+                <AlertTriangle className="h-4 w-4" />
+                Saatnya berhemat!
+              </span>
             ) : (
               'Sesuai rencana'
             )}
@@ -142,7 +156,8 @@ export default function BudgetSummary({
           <DialogHeader>
             <DialogTitle>Atur Anggaran Bulanan</DialogTitle>
             <DialogDescription>
-              Masukkan total pendapatan atau jumlah yang ingin Anda anggarkan untuk bulan ini.
+              Masukkan total pendapatan atau jumlah yang ingin Anda anggarkan
+              untuk bulan ini.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -154,14 +169,16 @@ export default function BudgetSummary({
                 id="budget"
                 type="number"
                 value={newBudget}
-                onChange={(e) => setNewBudget(e.target.value)}
+                onChange={e => setNewBudget(e.target.value)}
                 className="col-span-3"
                 placeholder="cth: 5000000"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Batal
+            </Button>
             <Button onClick={handleSave}>Simpan</Button>
           </DialogFooter>
         </DialogContent>

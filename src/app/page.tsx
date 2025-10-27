@@ -21,7 +21,7 @@ import BudgetSummary from '@/components/dashboard/budget-summary';
 import CategoriesList from '@/components/dashboard/categories-list';
 import TransactionsList from '@/components/dashboard/transactions-list';
 import Footer from '@/components/footer';
-import {format, subMonths, addMonths} from 'date-fns';
+import {format} from 'date-fns';
 import {useToast} from '@/hooks/use-toast';
 
 export default function DashboardPage() {
@@ -30,9 +30,8 @@ export default function DashboardPage() {
   const {user, loading: userLoading} = useUser();
   const firestore = useFirestore();
 
-  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [initialBudgetCreated, setInitialBudgetCreated] = useState(false);
-  const monthKey = format(currentMonth, 'yyyy-MM');
+  const monthKey = useMemo(() => format(new Date(), 'yyyy-MM'), []);
 
   const budgetQuery =
     user && firestore
@@ -313,14 +312,6 @@ export default function DashboardPage() {
     }
   };
 
-  const changeMonth = (direction: 'next' | 'prev') => {
-    const newMonth =
-      direction === 'next'
-        ? addMonths(currentMonth, 1)
-        : subMonths(currentMonth, 1);
-    setCurrentMonth(newMonth);
-    setInitialBudgetCreated(false); // Reset for the new month
-  };
 
   const loading =
     userLoading || budgetsLoading || categoriesLoading || transactionsLoading;
@@ -356,8 +347,6 @@ export default function DashboardPage() {
             totalSpent={totalSpent}
             totalBudgeted={totalBudgeted}
             onSetBudget={handleSetBudget}
-            currentMonth={currentMonth}
-            onChangeMonth={changeMonth}
           />
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
