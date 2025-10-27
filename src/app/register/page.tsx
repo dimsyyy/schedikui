@@ -3,7 +3,7 @@
 import {useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
-import {createUserWithEmailAndPassword} from 'firebase/auth';
+import {createUserWithEmailAndPassword, updateProfile} from 'firebase/auth';
 import {doc, setDoc} from 'firebase/firestore';
 import {useAuth, useFirestore} from '@/firebase';
 import {Button} from '@/components/ui/button';
@@ -24,6 +24,7 @@ export default function RegisterPage() {
   const auth = useAuth();
   const firestore = useFirestore();
   const {toast} = useToast();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +32,14 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name) {
+      toast({
+        title: 'Registrasi Gagal',
+        description: 'Nama lengkap harus diisi.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setLoading(true);
     setError(null);
     if (!auth || !firestore) return;
@@ -43,8 +52,12 @@ export default function RegisterPage() {
       );
       const user = userCredential.user;
 
+      // Update Firebase Auth profile
+      await updateProfile(user, { displayName: name });
+
       // Create user profile in Firestore
       await setDoc(doc(firestore, 'users', user.uid), {
+        displayName: name,
         email: user.email,
         createdAt: new Date().toISOString(),
       });
@@ -59,7 +72,7 @@ export default function RegisterPage() {
       setError(err.message);
       toast({
         title: 'Registrasi Gagal',
-        description: 'Terjadi kesalahan. Silakan coba lagi.',
+        description: err.message || 'Terjadi kesalahan. Silakan coba lagi.',
         variant: 'destructive',
       });
     } finally {
@@ -83,6 +96,17 @@ export default function RegisterPage() {
         <CardContent>
           <form onSubmit={handleRegister}>
             <div className="grid gap-4">
+               <div className="grid gap-2">
+                <Label htmlFor="name">Nama Lengkap</Label>
+                <Input
+                  id="name"
+                  type="text"
+                  placeholder="John Doe"
+                  required
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                />
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input

@@ -5,6 +5,10 @@
       "description": "Represents a user's profile information.",
       "type": "object",
       "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's full name."
+        },
         "email": {
           "type": "string",
           "format": "email",
@@ -16,7 +20,7 @@
           "description": "The timestamp when the user account was created."
         }
       },
-      "required": ["email", "createdAt"]
+      "required": ["displayName", "email", "createdAt"]
     },
     "Budget": {
       "title": "Budget",
