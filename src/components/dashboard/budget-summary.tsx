@@ -20,7 +20,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Pencil, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
 import { Progress } from '../ui/progress';
 import { format } from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -47,6 +47,7 @@ export default function BudgetSummary({
 
   const remainingBudget = monthlyBudget - totalSpent;
   const spendingProgress = monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
+  const remainingPercentage = monthlyBudget > 0 ? (remainingBudget / monthlyBudget) * 100 : 100;
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -125,7 +126,13 @@ export default function BudgetSummary({
         </CardHeader>
         <CardContent>
           <div className={`text-xs ${remainingBudget < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-            {remainingBudget < 0 ? 'Anda melebihi anggaran' : 'Sesuai rencana'}
+            {remainingBudget < 0 ? (
+              'Anda melebihi anggaran'
+            ) : remainingPercentage <= 30 ? (
+                <span className="text-yellow-600 flex items-center gap-1"><AlertTriangle className="h-4 w-4" />Saatnya berhemat!</span>
+            ) : (
+              'Sesuai rencana'
+            )}
           </div>
         </CardContent>
       </Card>

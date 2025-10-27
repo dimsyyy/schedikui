@@ -50,7 +50,7 @@ const spendingAnalysisAndCapacityCheckPrompt = ai.definePrompt({
 
   Tentukan apakah pengguna dapat menambahkan transaksi tanpa melebihi anggaran mereka dalam kategori yang ditentukan. Hitung sisa anggaran dalam kategori tersebut setelah transaksi.
 
-  Berikan analisis terperinci tentang temuan Anda, termasuk peringatan tentang potensi pengeluaran berlebih. Atur boolean canAddTransaction dengan benar.
+  Berikan analisis terperinci tentang temuan Anda. Jika transaksi dapat ditambahkan, sebutkan sisa anggaran. Jika pengeluaran baru membuat total pengeluaran kategori di atas 70% dari anggarannya, berikan peringatan untuk berhati-hati. Jika transaksi menyebabkan pengeluaran berlebih, nyatakan dengan jelas berapa jumlah kelebihannya. Atur boolean canAddTransaction dengan benar.
   `,
 });
 
@@ -61,35 +61,7 @@ const spendingAnalysisAndCapacityCheckFlow = ai.defineFlow(
     outputSchema: SpendingAnalysisAndCapacityCheckOutputSchema,
   },
   async input => {
-    const {transactionAmount, transactionCategory, monthlyBudget, categoryBudgetAllocation, currentSpendingByCategory} = input;
-    
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('id-ID', {
-          style: 'currency',
-          currency: 'IDR',
-          minimumFractionDigits: 0,
-          maximumFractionDigits: 0,
-        }).format(amount);
-    };
-
-    // Calculate remaining budget in the category.
-    const allocatedBudget = categoryBudgetAllocation[transactionCategory] || 0;
-    const currentSpending = currentSpendingByCategory[transactionCategory] || 0;
-    const remainingBudgetInCategory = allocatedBudget - currentSpending - transactionAmount;
-
-    const canAddTransaction = remainingBudgetInCategory >= 0;
-
-    let analysisResult = '';
-    if (canAddTransaction) {
-      analysisResult = `Anda dapat menambahkan transaksi ini. Sisa anggaran di kategori ${transactionCategory}: ${formatCurrency(remainingBudgetInCategory)}.`;
-    } else {
-      analysisResult = `Peringatan: Menambahkan transaksi ini akan melebihi anggaran Anda di kategori ${transactionCategory} sebesar ${formatCurrency(Math.abs(remainingBudgetInCategory))}.`;
-    }
-
-    return {
-      canAddTransaction,
-      remainingBudgetInCategory,
-      analysisResult,
-    };
+    const {output} = await spendingAnalysisAndCapacityCheckPrompt(input);
+    return output!;
   }
 );
