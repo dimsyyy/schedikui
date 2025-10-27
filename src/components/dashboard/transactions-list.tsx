@@ -78,7 +78,7 @@ export default function TransactionsList({
   };
   
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Transaksi Terkini</CardTitle>
@@ -105,7 +105,7 @@ export default function TransactionsList({
       <CardContent>
         {transactions.length > 0 ? (
           <div className="space-y-4">
-            {transactions.slice(0, 5).map(transaction => {
+            {transactions.slice(0, 10).map(transaction => {
                 const category = categories.find(c => c.id === transaction.categoryId);
                 const Icon = category?.icon;
                 return (

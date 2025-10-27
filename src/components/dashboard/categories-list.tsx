@@ -83,8 +83,8 @@ export default function CategoriesList({
     <Card className="h-full flex flex-col">
       <CardHeader className='flex-row items-center justify-between'>
         <div>
-          <CardTitle>Kategori</CardTitle>
-          <CardDescription>Alokasikan anggaran Anda.</CardDescription>
+          <CardTitle>Alokasi Anggaran</CardTitle>
+          <CardDescription>Atur anggaran untuk tiap kategori.</CardDescription>
         </div>
          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
@@ -93,7 +93,7 @@ export default function CategoriesList({
             <AddCategoryDialog onAddCategory={onAddCategory} setIsOpen={setIsAddDialogOpen} />
         </Dialog>
       </CardHeader>
-      <CardContent className="flex-grow overflow-auto">
+      <CardContent className="flex-grow overflow-auto pr-4">
         <div className="space-y-4">
           {categories.map(category => (
             <CategoryItem key={category.id} category={category} formatCurrency={formatCurrency} onSetCategoryBudget={onSetCategoryBudget} onDeleteCategory={onDeleteCategory}/>
@@ -114,6 +114,7 @@ function CategoryItem({ category, formatCurrency, onSetCategoryBudget, onDeleteC
     const [isEdit, setIsEdit] = useState(false);
     const [newBudget, setNewBudget] = useState(category.budget.toString());
     const progress = category.budget > 0 ? (category.spent / category.budget) * 100 : 0;
+    const remaining = category.budget - category.spent;
     
     const handleSave = () => {
         const amount = parseFloat(newBudget);
@@ -167,7 +168,9 @@ function CategoryItem({ category, formatCurrency, onSetCategoryBudget, onDeleteC
                     )}
                    </div>
                 </div>
-                 <div className="text-xs text-muted-foreground">Terpakai {formatCurrency(category.spent)}</div>
+                 <div className={`text-xs ${remaining < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
+                    {remaining >= 0 ? `Sisa ${formatCurrency(remaining)}` : `Berlebih ${formatCurrency(Math.abs(remaining))}`}
+                </div>
               </div>
             </div>
             <Progress value={progress} className="mt-2 h-2" />

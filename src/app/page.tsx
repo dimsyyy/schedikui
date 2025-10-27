@@ -6,7 +6,6 @@ import {DEFAULT_CATEGORIES} from '@/lib/constants';
 import {nanoid} from 'nanoid';
 import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
-import SpendingReport from '@/components/dashboard/spending-report';
 import CategoriesList from '@/components/dashboard/categories-list';
 import TransactionsList from '@/components/dashboard/transactions-list';
 import { Sparkles } from 'lucide-react';
@@ -154,7 +153,14 @@ export default function DashboardPage() {
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <div className="xl:col-span-2">
-            <SpendingReport categories={categories} />
+             <TransactionsList
+                transactions={transactions}
+                categories={categories}
+                onAddTransaction={handleAddTransaction}
+                monthlyBudget={monthlyBudget}
+                categoryBudgetAllocation={Object.fromEntries(categories.map(c => [c.name, c.budget]))}
+                currentSpendingByCategory={Object.fromEntries(categories.map(c => [c.name, c.spent]))}
+             />
           </div>
           <div>
             <CategoriesList
@@ -166,16 +172,6 @@ export default function DashboardPage() {
               monthlyBudget={monthlyBudget}
             />
           </div>
-        </div>
-        <div>
-          <TransactionsList
-            transactions={transactions}
-            categories={categories}
-            onAddTransaction={handleAddTransaction}
-            monthlyBudget={monthlyBudget}
-            categoryBudgetAllocation={Object.fromEntries(categories.map(c => [c.name, c.budget]))}
-            currentSpendingByCategory={Object.fromEntries(categories.map(c => [c.name, c.spent]))}
-          />
         </div>
       </main>
     </div>
