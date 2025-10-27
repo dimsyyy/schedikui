@@ -53,7 +53,7 @@ type CategoriesListProps = {
   totalBudgeted: number;
   monthlyBudget: number;
   onSetCategoryBudget: (categoryId: string, budget: number) => void;
-  onAddCategory: (name: string, budget: number, icon: React.ComponentType) => void;
+  onAddCategory: (name: string, budget: number, icon: React.ComponentType<{ className?: string }>) => void;
   onDeleteCategory: (categoryId: string) => void;
 };
 
@@ -121,10 +121,12 @@ function CategoryItem({ category, formatCurrency, onSetCategoryBudget, onDeleteC
         setIsEdit(false);
     }
     
+    const Icon = category.icon;
+
     return (
         <div>
             <div className="flex items-center gap-4">
-              <category.icon className="h-6 w-6 text-muted-foreground" />
+              {Icon && <Icon className="h-6 w-6 text-muted-foreground" />}
               <div className="flex-grow">
                 <div className="flex justify-between items-center">
                   <span className="font-medium">{category.name}</span>
@@ -171,14 +173,14 @@ function CategoryItem({ category, formatCurrency, onSetCategoryBudget, onDeleteC
     )
 }
 
-function AddCategoryDialog({ onAddCategory, setIsOpen }: { onAddCategory: (name: string, budget: number, icon: React.ComponentType) => void, setIsOpen: (open: boolean) => void }) {
+function AddCategoryDialog({ onAddCategory, setIsOpen }: { onAddCategory: (name: string, budget: number, icon: React.ComponentType<{ className?: string }>) => void, setIsOpen: (open: boolean) => void }) {
     const [name, setName] = useState('');
     const [budget, setBudget] = useState('');
     const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
 
     const handleSave = () => {
         const budgetAmount = parseFloat(budget) || 0;
-        let categoryIcon = Sparkles;
+        let categoryIcon: React.ComponentType<{ className?: string }> = Sparkles;
         let categoryName = name;
         
         if (selectedTemplate) {

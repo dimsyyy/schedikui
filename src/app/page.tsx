@@ -9,6 +9,7 @@ import BudgetSummary from '@/components/dashboard/budget-summary';
 import SpendingReport from '@/components/dashboard/spending-report';
 import CategoriesList from '@/components/dashboard/categories-list';
 import TransactionsList from '@/components/dashboard/transactions-list';
+import { Sparkles } from 'lucide-react';
 
 // Helper to get data from localStorage
 const getInitialState = <T,>(key: string, defaultValue: T): T => {
@@ -40,7 +41,19 @@ export default function DashboardPage() {
   useEffect(() => {
     if (isClient) {
       setMonthlyBudget(getInitialState('monthlyBudget', 3000));
-      setCategories(getInitialState('categories', DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0 }))));
+      const savedCategories = getInitialState<Category[]>('categories', []);
+      if (savedCategories.length > 0) {
+        const categoriesWithIcons = savedCategories.map(cat => {
+            const defaultCat = DEFAULT_CATEGORIES.find(dc => dc.id === cat.id || dc.name === cat.name);
+            return {
+                ...cat,
+                icon: defaultCat ? defaultCat.icon : Sparkles
+            };
+        });
+        setCategories(categoriesWithIcons);
+      } else {
+         setCategories(DEFAULT_CATEGORIES.map(c => ({...c, budget: 0, spent: 0 })));
+      }
       setTransactions(getInitialState('transactions', []));
     }
   }, [isClient]);
@@ -54,7 +67,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isClient) {
-      window.localStorage.setItem('categories', JSON.stringify(categories));
+       const categoriesToSave = categories.map(({ icon, ...rest }) => rest);
+      window.localStorage.setItem('categories', JSON.stringify(categoriesToSave));
     }
   }, [categories, isClient]);
 
@@ -65,8 +79,8 @@ export default function DashboardPage() {
   }, [transactions, isClient]);
 
   const {totalSpent, totalBudgeted} = useMemo(() => {
-    const spent = categories.reduce((sum, cat) => sum + cat.spent, 0);
-    const budgeted = categories.reduce((sum, cat) => sum + cat.budget, 0);
+    const spent = categories.reduce((sum, cat) => sum + (cat.spent || 0), 0);
+    const budgeted = categories.reduce((sum, cat) => sum + (cat.budget || 0), 0);
     return {totalSpent: spent, totalBudgeted: budgeted};
   }, [categories]);
 
@@ -80,7 +94,7 @@ export default function DashboardPage() {
     );
   };
 
-  const handleAddCategory = (name: string, budget: number, icon: React.ComponentType) => {
+  const handleAddCategory = (name: string, budget: number, icon: React.ComponentType<{ className?: string }>) => {
     const newCategory: Category = {
       id: nanoid(),
       name,

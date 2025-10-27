@@ -5,7 +5,7 @@ export type Category = {
   name: string;
   budget: number;
   spent: number;
-  icon: LucideIcon;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
 export type Transaction = {
@@ -16,3 +16,9 @@ export type Transaction = {
   description: string;
   date: string;
 };
+
+export type DefaultCategory = {
+  id: string;
+  name: string;
+  icon: LucideIcon;
+}
