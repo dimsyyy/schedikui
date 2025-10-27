@@ -19,6 +19,19 @@ import {Label} from '@/components/ui/label';
 import {Icons} from '@/components/icons';
 import {useToast} from '@/hooks/use-toast';
 
+function getFirebaseErrorMessage(errorCode: string): string {
+  switch (errorCode) {
+    case 'auth/email-already-in-use':
+      return 'Email ini sudah terdaftar. Silakan gunakan email lain atau login.';
+    case 'auth/weak-password':
+      return 'Password terlalu lemah. Gunakan minimal 6 karakter.';
+    case 'auth/invalid-email':
+      return 'Format email tidak valid. Silakan periksa kembali.';
+    default:
+      return 'Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.';
+  }
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const auth = useAuth();
@@ -27,7 +40,6 @@ export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -41,7 +53,6 @@ export default function RegisterPage() {
       return;
     }
     setLoading(true);
-    setError(null);
     if (!auth || !firestore) return;
 
     try {
@@ -53,7 +64,7 @@ export default function RegisterPage() {
       const user = userCredential.user;
 
       // Update Firebase Auth profile
-      await updateProfile(user, { displayName: name });
+      await updateProfile(user, {displayName: name});
 
       // Create user profile in Firestore
       await setDoc(doc(firestore, 'users', user.uid), {
@@ -61,18 +72,19 @@ export default function RegisterPage() {
         email: user.email,
         createdAt: new Date().toISOString(),
       });
-      
+
       toast({
         title: 'Registrasi Berhasil!',
-        description: 'Akun Anda telah dibuat. Anda akan diarahkan ke dashboard.',
+        description:
+          'Akun Anda telah dibuat. Anda akan diarahkan ke dashboard.',
       });
 
       router.push('/');
     } catch (err: any) {
-      setError(err.message);
+      const errorMessage = getFirebaseErrorMessage(err.code);
       toast({
         title: 'Registrasi Gagal',
-        description: err.message || 'Terjadi kesalahan. Silakan coba lagi.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -84,19 +96,22 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
       <Card className="mx-auto max-w-sm">
         <CardHeader className="text-center">
-            <Link href="#" className="flex justify-center items-center gap-2 text-lg font-semibold md:text-base mb-4">
-                <Icons.Logo className="h-8 w-8 text-primary" />
-                <h1 className="text-2xl font-bold tracking-tight">Schediku</h1>
-            </Link>
-            <CardTitle className="text-2xl">Sign Up</CardTitle>
-            <CardDescription>
-                Masukkan informasi Anda untuk membuat akun
-            </CardDescription>
+          <Link
+            href="#"
+            className="flex justify-center items-center gap-2 text-lg font-semibold md:text-base mb-4"
+          >
+            <Icons.Logo className="h-8 w-8 text-primary" />
+            <h1 className="text-2xl font-bold tracking-tight">Schediku</h1>
+          </Link>
+          <CardTitle className="text-2xl">Sign Up</CardTitle>
+          <CardDescription>
+            Masukkan informasi Anda untuk membuat akun
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister}>
             <div className="grid gap-4">
-               <div className="grid gap-2">
+              <div className="grid gap-2">
                 <Label htmlFor="name">Nama Lengkap</Label>
                 <Input
                   id="name"

@@ -18,19 +18,30 @@ import {Label} from '@/components/ui/label';
 import {Icons} from '@/components/icons';
 import {useToast} from '@/hooks/use-toast';
 
+function getFirebaseErrorMessage(errorCode: string): string {
+  switch (errorCode) {
+    case 'auth/user-not-found':
+    case 'auth/wrong-password':
+    case 'auth/invalid-credential':
+      return 'Email atau password salah. Silakan coba lagi.';
+    case 'auth/invalid-email':
+      return 'Format email tidak valid.';
+    default:
+      return 'Terjadi kesalahan. Silakan coba lagi nanti.';
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
   const {toast} = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     if (!auth) return;
 
     try {
@@ -41,10 +52,10 @@ export default function LoginPage() {
       });
       router.push('/');
     } catch (err: any) {
-      setError(err.message);
-       toast({
+      const errorMessage = getFirebaseErrorMessage(err.code);
+      toast({
         title: 'Login Gagal',
-        description: 'Email atau password salah. Silakan coba lagi.',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -56,7 +67,10 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
       <Card className="mx-auto max-w-sm">
         <CardHeader className="text-center">
-           <Link href="#" className="flex justify-center items-center gap-2 text-lg font-semibold md:text-base mb-4">
+          <Link
+            href="#"
+            className="flex justify-center items-center gap-2 text-lg font-semibold md:text-base mb-4"
+          >
             <Icons.Logo className="h-8 w-8 text-primary" />
             <h1 className="text-2xl font-bold tracking-tight">Schediku</h1>
           </Link>
