@@ -2,7 +2,7 @@
 
 import {useState} from 'react';
 import type {Category, Transaction} from '@/lib/types';
-import {checkTransactionCapacity} from '@/app/actions';
+import * as Lucide from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -22,17 +22,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -40,17 +29,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {Label} from '@/components/ui/label';
-import {Plus, AlertTriangle, CheckCircle2} from 'lucide-react';
+import {Plus, Sparkles} from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
 import {format} from 'date-fns';
-import { id } from 'date-fns/locale';
+import {id} from 'date-fns/locale';
 
 type TransactionsListProps = {
   transactions: Transaction[];
   categories: Category[];
-  monthlyBudget: number;
-  categoryBudgetAllocation: Record<string, number>;
-  currentSpendingByCategory: Record<string, number>;
   onAddTransaction: (
     amount: number,
     categoryId: string,
@@ -62,9 +48,6 @@ export default function TransactionsList({
   transactions,
   categories,
   onAddTransaction,
-  monthlyBudget,
-  categoryBudgetAllocation,
-  currentSpendingByCategory,
 }: TransactionsListProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
@@ -77,6 +60,10 @@ export default function TransactionsList({
     }).format(amount);
   };
   
+  const getCategoryName = (categoryId: string) => {
+    return categories.find(c => c.id === categoryId)?.name || "N/A";
+  }
+
   return (
     <Card className="h-full">
       <CardHeader className="flex flex-row items-center justify-between">
@@ -96,9 +83,6 @@ export default function TransactionsList({
             categories={categories}
             onAddTransaction={onAddTransaction}
             setIsOpen={setIsAddDialogOpen}
-            monthlyBudget={monthlyBudget}
-            categoryBudgetAllocation={categoryBudgetAllocation}
-            currentSpendingByCategory={currentSpendingByCategory}
           />
         </Dialog>
       </CardHeader>
@@ -106,20 +90,27 @@ export default function TransactionsList({
         {transactions.length > 0 ? (
           <div className="space-y-4">
             {transactions.slice(0, 10).map(transaction => {
-                const category = categories.find(c => c.id === transaction.categoryId);
-                const Icon = category?.icon;
-                return (
-                    <div key={transaction.id} className="flex items-center gap-4">
-                         {Icon && <Icon className="h-6 w-6 text-muted-foreground" />}
-                        <div className="flex-grow">
-                            <p className="font-medium">{transaction.description}</p>
-                            <p className="text-sm text-muted-foreground">{transaction.categoryName} &middot; {format(new Date(transaction.date), "d MMM", { locale: id })}</p>
-                        </div>
-                        <div className="font-medium text-right">
-                           - {formatCurrency(transaction.amount)}
-                        </div>
-                    </div>
-                )
+              const category = categories.find(
+                c => c.id === transaction.categoryId
+              );
+              const Icon = category ? Lucide[category.iconName] ?? Sparkles : Sparkles;
+              return (
+                <div key={transaction.id} className="flex items-center gap-4">
+                  <Icon className="h-6 w-6 text-muted-foreground" />
+                  <div className="flex-grow">
+                    <p className="font-medium">{transaction.description}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {getCategoryName(transaction.categoryId)} &middot;{' '}
+                      {format(new Date(transaction.date), 'd MMM', {
+                        locale: id,
+                      })}
+                    </p>
+                  </div>
+                  <div className="font-medium text-right">
+                    - {formatCurrency(transaction.amount)}
+                  </div>
+                </div>
+              );
             })}
           </div>
         ) : (
@@ -137,9 +128,6 @@ function AddTransactionDialog({
   categories,
   onAddTransaction,
   setIsOpen,
-  monthlyBudget,
-  categoryBudgetAllocation,
-  currentSpendingByCategory,
 }: {
   categories: Category[];
   onAddTransaction: (
@@ -148,79 +136,43 @@ function AddTransactionDialog({
     description: string
   ) => void;
   setIsOpen: (open: boolean) => void;
-  monthlyBudget: number;
-  categoryBudgetAllocation: Record<string, number>;
-  currentSpendingByCategory: Record<string, number>;
 }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [categoryId, setCategoryId] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<{ canAddTransaction: boolean; analysisResult: string } | null>(null);
 
-  const { toast } = useToast();
+  const {toast} = useToast();
 
-  const handleAnalysis = async () => {
-    if (!amount || !categoryId || !description) {
+  const handleConfirmAdd = () => {
+     if (!amount || !categoryId || !description) {
       toast({
         title: "Informasi Kurang",
-        description: "Harap isi semua kolom sebelum analisis.",
+        description: "Harap isi semua kolom.",
         variant: "destructive",
       });
       return;
     }
-    
-    setIsLoading(true);
-    setAnalysisResult(null);
-
-    const selectedCategory = categories.find(c => c.id === categoryId);
-    if (!selectedCategory) return;
-    
-    const input = {
-        transactionAmount: parseFloat(amount),
-        transactionCategory: selectedCategory.name,
-        monthlyBudget,
-        categoryBudgetAllocation,
-        currentSpendingByCategory
-    }
-
-    const result = await checkTransactionCapacity(input);
-    
-    if (result.success && result.data) {
-        setAnalysisResult(result.data);
-    } else {
-        toast({
-            title: "Analisis Gagal",
-            description: result.error || "Tidak dapat menganalisis transaksi.",
-            variant: "destructive",
-        })
-    }
-    setIsLoading(false);
-  };
-
-  const handleConfirmAdd = () => {
     onAddTransaction(parseFloat(amount), categoryId, description);
     setIsOpen(false);
     resetForm();
     toast({
-        title: "Pengeluaran Ditambahkan",
-        description: "Transaksi Anda telah dicatat.",
+      title: 'Pengeluaran Ditambahkan',
+      description: 'Transaksi Anda telah dicatat.',
     });
-  }
-  
+  };
+
   const resetForm = () => {
-      setDescription('');
-      setAmount('');
-      setCategoryId('');
-      setAnalysisResult(null);
-  }
+    setDescription('');
+    setAmount('');
+    setCategoryId('');
+  };
 
   return (
     <DialogContent>
       <DialogHeader>
         <DialogTitle>Tambah Pengeluaran Baru</DialogTitle>
         <DialogDescription>
-          Catat transaksi baru dan lihat dampaknya pada anggaran Anda.
+          Catat transaksi baru untuk anggaran Anda.
         </DialogDescription>
       </DialogHeader>
       <div className="space-y-4 py-4">
@@ -262,40 +214,17 @@ function AddTransactionDialog({
         </div>
       </div>
       <DialogFooter>
-        <Button variant="outline" onClick={() => { setIsOpen(false); resetForm(); }}>
+        <Button
+          variant="outline"
+          onClick={() => {
+            setIsOpen(false);
+            resetForm();
+          }}
+        >
           Batal
         </Button>
-        <Button onClick={handleAnalysis} disabled={isLoading}>
-          {isLoading ? 'Menganalisis...' : 'Analisis Pengeluaran'}
-        </Button>
+        <Button onClick={handleConfirmAdd}>Tambah</Button>
       </DialogFooter>
-
-      {analysisResult && (
-        <AlertDialog open={!!analysisResult} onOpenChange={() => setAnalysisResult(null)}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="flex items-center gap-2">
-                        {analysisResult.canAddTransaction ? 
-                        <CheckCircle2 className="h-6 w-6 text-green-500" /> : 
-                        <AlertTriangle className="h-6 w-6 text-yellow-500" />}
-                        Hasil Analisis AI
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                        {analysisResult.analysisResult}
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setAnalysisResult(null)}>Tutup</AlertDialogCancel>
-                    {analysisResult.canAddTransaction && 
-                        <AlertDialogAction onClick={handleConfirmAdd}>
-                            Tambah Pengeluaran
-                        </AlertDialogAction>
-                    }
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-      )}
-
     </DialogContent>
   );
 }

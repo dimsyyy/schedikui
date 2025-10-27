@@ -1,17 +1,19 @@
-import type {LucideIcon} from 'lucide-react';
+import type {LucideProps} from 'lucide-react';
+import type * as Lucide from 'lucide-react';
+
+export type IconName = keyof Omit<typeof Lucide, 'createLucideIcon' | 'LucideIcon'>;
 
 export type Category = {
   id: string;
   name: string;
   budget: number;
   spent: number;
-  icon: React.ComponentType<{ className?: string }>;
+  iconName: IconName;
 };
 
 export type Transaction = {
   id: string;
   categoryId: string;
-  categoryName: string;
   amount: number;
   description: string;
   date: string;
@@ -20,15 +22,12 @@ export type Transaction = {
 export type DefaultCategory = {
   id: string;
   name: string;
-  icon: LucideIcon;
-}
-
-export type MonthlyData = {
-  monthlyBudget: number;
-  categories: Category[];
-  transactions: Transaction[];
+  iconName: IconName;
 };
 
-export type AppData = {
-  [month: string]: MonthlyData; // e.g. "2023-10"
+export type Budget = {
+  id: string;
+  userId: string;
+  month: string; // e.g. "2024-07"
+  monthlyBudget: number;
 };

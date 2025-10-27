@@ -1,0 +1,120 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's profile information.",
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the user account was created."
+        }
+      },
+      "required": ["email", "createdAt"]
+    },
+    "Budget": {
+      "title": "Budget",
+      "description": "Represents a monthly budget for a user.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user this budget belongs to."
+        },
+        "month": {
+          "type": "string",
+          "description": "The month for this budget, formatted as 'YYYY-MM'."
+        },
+        "monthlyBudget": {
+          "type": "number",
+          "description": "The total budget amount for the month."
+        }
+      },
+      "required": ["userId", "month", "monthlyBudget"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Represents a budget category within a monthly budget.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the category."
+        },
+        "iconName": {
+          "type": "string",
+          "description": "The name of the Lucide icon for the category."
+        },
+        "budget": {
+          "type": "number",
+          "description": "The allocated budget for this category."
+        },
+        "spent": {
+          "type": "number",
+          "description": "The total amount spent in this category."
+        }
+      },
+      "required": ["name", "iconName", "budget", "spent"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Represents a single transaction.",
+      "type": "object",
+      "properties": {
+        "categoryId": {
+          "type": "string",
+          "description": "The ID of the category this transaction belongs to."
+        },
+        "amount": {
+          "type": "number",
+          "description": "The amount of the transaction."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the transaction."
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time of the transaction."
+        }
+      },
+      "required": ["categoryId", "amount", "description", "date"]
+    }
+  },
+  "auth": {
+    "providers": ["password"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores user profile information."
+    },
+    "/budgets/{budgetId}": {
+      "schema": {
+        "$ref": "#/entities/Budget"
+      },
+      "description": "Stores monthly budget documents for all users."
+    },
+    "/budgets/{budgetId}/categories/{categoryId}": {
+      "schema": {
+        "$ref": "#/entities/Category"
+      },
+      "description": "Sub-collection for categories within a specific monthly budget."
+    },
+    "/budgets/{budgetId}/transactions/{transactionId}": {
+      "schema": {
+        "$ref": "#/entities/Transaction"
+      },
+      "description": "Sub-collection for transactions within a specific monthly budget."
+    }
+  }
+}
