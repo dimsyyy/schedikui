@@ -69,9 +69,11 @@ export default function CategoriesList({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
   
@@ -81,12 +83,12 @@ export default function CategoriesList({
     <Card className="h-full flex flex-col">
       <CardHeader className='flex-row items-center justify-between'>
         <div>
-          <CardTitle>Categories</CardTitle>
-          <CardDescription>Allocate your budget.</CardDescription>
+          <CardTitle>Kategori</CardTitle>
+          <CardDescription>Alokasikan anggaran Anda.</CardDescription>
         </div>
          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
-                <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-2" />Add</Button>
+                <Button size="sm" variant="outline"><Plus className="h-4 w-4 mr-2" />Tambah</Button>
             </DialogTrigger>
             <AddCategoryDialog onAddCategory={onAddCategory} setIsOpen={setIsAddDialogOpen} />
         </Dialog>
@@ -99,9 +101,9 @@ export default function CategoriesList({
         </div>
       </CardContent>
       <CardFooter className="flex-col items-start pt-4">
-        <div className="text-sm font-medium">Total Allocated: {formatCurrency(totalBudgeted)}</div>
+        <div className="text-sm font-medium">Total Dialokasikan: {formatCurrency(totalBudgeted)}</div>
         <div className={`text-xs ${unallocated < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-            Unallocated: {formatCurrency(unallocated)}
+            Belum Dialokasikan: {formatCurrency(unallocated)}
         </div>
       </CardFooter>
     </Card>
@@ -134,8 +136,8 @@ function CategoryItem({ category, formatCurrency, onSetCategoryBudget, onDeleteC
                     {isEdit ? (
                         <>
                          <Input type="number" value={newBudget} onChange={(e) => setNewBudget(e.target.value)} className="h-8 w-24 text-right" />
-                         <Button size="sm" onClick={handleSave}>Save</Button>
-                         <Button size="sm" variant="ghost" onClick={() => setIsEdit(false)}>Cancel</Button>
+                         <Button size="sm" onClick={handleSave}>Simpan</Button>
+                         <Button size="sm" variant="ghost" onClick={() => setIsEdit(false)}>Batal</Button>
                         </>
                     ) : (
                         <>
@@ -148,15 +150,15 @@ function CategoryItem({ category, formatCurrency, onSetCategoryBudget, onDeleteC
                             </AlertDialogTrigger>
                              <AlertDialogContent>
                                 <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This will permanently delete the "{category.name}" category and all its transactions. This action cannot be undone.
+                                    Ini akan menghapus kategori "{category.name}" dan semua transaksinya secara permanen. Tindakan ini tidak dapat dibatalkan.
                                 </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogCancel>Batal</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => onDeleteCategory(category.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-                                    Delete
+                                    Hapus
                                 </AlertDialogAction>
                                 </AlertDialogFooter>
                             </AlertDialogContent>
@@ -165,7 +167,7 @@ function CategoryItem({ category, formatCurrency, onSetCategoryBudget, onDeleteC
                     )}
                    </div>
                 </div>
-                 <div className="text-xs text-muted-foreground">Spent {formatCurrency(category.spent)}</div>
+                 <div className="text-xs text-muted-foreground">Terpakai {formatCurrency(category.spent)}</div>
               </div>
             </div>
             <Progress value={progress} className="mt-2 h-2" />
@@ -203,17 +205,17 @@ function AddCategoryDialog({ onAddCategory, setIsOpen }: { onAddCategory: (name:
     return (
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Add New Category</DialogTitle>
+                <DialogTitle>Tambah Kategori Baru</DialogTitle>
                 <DialogDescription>
-                    Create a custom category or choose from a template.
+                    Buat kategori khusus atau pilih dari templat.
                 </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
                  <div className="space-y-2">
-                    <Label htmlFor="template">Template</Label>
+                    <Label htmlFor="template">Templat</Label>
                     <Select onValueChange={(value) => setSelectedTemplate(value)}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Choose from a template..." />
+                            <SelectValue placeholder="Pilih dari templat..." />
                         </SelectTrigger>
                         <SelectContent>
                             {DEFAULT_CATEGORIES.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
@@ -222,18 +224,18 @@ function AddCategoryDialog({ onAddCategory, setIsOpen }: { onAddCategory: (name:
                  </div>
                  { !selectedTemplate && (
                     <div className="space-y-2">
-                        <Label htmlFor="name">Custom Name</Label>
-                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Subscriptions" />
+                        <Label htmlFor="name">Nama Khusus</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="cth: Langganan" />
                     </div>
                  )}
                  <div className="space-y-2">
-                    <Label htmlFor="budget">Budget</Label>
-                    <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="e.g., 50" />
+                    <Label htmlFor="budget">Anggaran</Label>
+                    <Input id="budget" type="number" value={budget} onChange={(e) => setBudget(e.target.value)} placeholder="cth: 50000" />
                  </div>
             </div>
             <DialogFooter>
-                <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>
-                <Button onClick={handleSave}>Add Category</Button>
+                <Button variant="outline" onClick={() => setIsOpen(false)}>Batal</Button>
+                <Button onClick={handleSave}>Tambah Kategori</Button>
             </DialogFooter>
         </DialogContent>
     );

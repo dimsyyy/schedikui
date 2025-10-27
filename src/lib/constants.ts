@@ -17,12 +17,12 @@ export type DefaultCategory = {
 };
 
 export const DEFAULT_CATEGORIES: DefaultCategory[] = [
-  {id: 'groceries', name: 'Groceries', icon: ShoppingBasket},
-  {id: 'transport', name: 'Transport', icon: Car},
-  {id: 'utilities', name: 'Utilities', icon: Zap},
-  {id: 'rent', name: 'Rent/Mortgage', icon: Home},
-  {id: 'entertainment', name: 'Entertainment', icon: Ticket},
-  {id: 'health', name: 'Health', icon: HeartPulse},
-  {id: 'gifts', name: 'Gifts', icon: Gift},
-  {id: 'other', name: 'Other', icon: Sparkles},
+  {id: 'groceries', name: 'Belanja Bulanan', icon: ShoppingBasket},
+  {id: 'transport', name: 'Transportasi', icon: Car},
+  {id: 'utilities', name: 'Tagihan', icon: Zap},
+  {id: 'rent', name: 'Sewa/Cicilan', icon: Home},
+  {id: 'entertainment', name: 'Hiburan', icon: Ticket},
+  {id: 'health', name: 'Kesehatan', icon: HeartPulse},
+  {id: 'gifts', name: 'Hadiah', icon: Gift},
+  {id: 'other', name: 'Lainnya', icon: Sparkles},
 ];

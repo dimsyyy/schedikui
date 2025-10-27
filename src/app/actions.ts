@@ -13,6 +13,6 @@ export async function checkTransactionCapacity(
     return {success: true, data: result};
   } catch (error) {
     console.error('Error in GenAI capacity check:', error);
-    return {success: false, error: 'Failed to analyze transaction capacity.'};
+    return {success: false, error: 'Gagal menganalisis kapasitas transaksi.'};
   }
 }

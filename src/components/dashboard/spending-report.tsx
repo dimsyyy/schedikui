@@ -30,11 +30,11 @@ type SpendingReportProps = {
 
 const chartConfig = {
   budget: {
-    label: 'Budget',
+    label: 'Anggaran',
     color: 'hsl(var(--chart-1))',
   },
   spent: {
-    label: 'Spent',
+    label: 'Terpakai',
     color: 'hsl(var(--primary))',
   },
 } satisfies ChartConfig;
@@ -46,14 +46,21 @@ export default function SpendingReport({categories}: SpendingReportProps) {
     spent: cat.spent,
   }));
 
-  const formatCurrency = (value: number) => `$${value.toFixed(0)}`;
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Budget vs. Spending</CardTitle>
+        <CardTitle>Anggaran vs. Pengeluaran</CardTitle>
         <CardDescription>
-          A visual breakdown of your allocated budget versus actual spending per category.
+          Rincian visual dari alokasi anggaran Anda dibandingkan pengeluaran aktual per kategori.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -73,7 +80,16 @@ export default function SpendingReport({categories}: SpendingReportProps) {
                   fontSize={12}
                   tickLine={false}
                   axisLine={false}
-                  tickFormatter={formatCurrency}
+                  tickFormatter={value =>
+                    new Intl.NumberFormat('id-ID', {
+                      style: 'currency',
+                      currency: 'IDR',
+                      notation: 'compact',
+                      compactDisplay: 'short',
+                      minimumFractionDigits: 0,
+                      maximumFractionDigits: 0,
+                    }).format(value as number)
+                  }
                 />
                 <ChartTooltip
                   cursor={{fill: 'hsl(var(--muted))'}}
@@ -84,11 +100,13 @@ export default function SpendingReport({categories}: SpendingReportProps) {
                   dataKey="budget"
                   fill="hsl(var(--chart-1))"
                   radius={[4, 4, 0, 0]}
+                  name="Anggaran"
                 />
                 <Bar
                   dataKey="spent"
                   fill="hsl(var(--primary))"
                   radius={[4, 4, 0, 0]}
+                  name="Terpakai"
                 />
               </BarChart>
             </ResponsiveContainer>

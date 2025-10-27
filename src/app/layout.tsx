@@ -4,9 +4,9 @@ import {ThemeProvider} from '@/components/theme-provider';
 import {Toaster} from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
-  title: 'Schediku - Your Personal Budget Companion',
+  title: 'Schediku - Asisten Anggaran Pribadi Anda',
   description:
-    'Track your spending, create budgets, and gain financial clarity with Schediku.',
+    'Lacak pengeluaran, buat anggaran, dan dapatkan kejelasan finansial dengan Schediku.',
 };
 
 export default function RootLayout({
@@ -15,7 +15,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

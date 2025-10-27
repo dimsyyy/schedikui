@@ -43,9 +43,11 @@ export default function BudgetSummary({
   const spendingProgress = monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('id-ID', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(amount);
   };
   
@@ -61,46 +63,46 @@ export default function BudgetSummary({
     <>
       <Card className="sm:col-span-2">
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
-          <CardTitle>Monthly Overview</CardTitle>
+          <CardTitle>Ringkasan Bulanan</CardTitle>
            <Button variant="ghost" size="icon" onClick={() => setIsDialogOpen(true)}>
              <Pencil className="h-4 w-4" />
           </Button>
         </CardHeader>
         <CardContent>
           <div className="text-4xl font-bold">{formatCurrency(monthlyBudget)}</div>
-          <CardDescription>Your total monthly budget.</CardDescription>
+          <CardDescription>Total anggaran bulanan Anda.</CardDescription>
         </CardContent>
         <CardFooter>
             <div className="w-full">
                 <div className="flex justify-between text-sm text-muted-foreground mb-1">
-                    <span>Spent: {formatCurrency(totalSpent)}</span>
-                    <span>Remaining: {formatCurrency(remainingBudget)}</span>
+                    <span>Terpakai: {formatCurrency(totalSpent)}</span>
+                    <span>Sisa: {formatCurrency(remainingBudget)}</span>
                 </div>
-                <Progress value={spendingProgress} aria-label={`${spendingProgress.toFixed(0)}% of budget spent`} />
+                <Progress value={spendingProgress} aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`} />
             </div>
         </CardFooter>
       </Card>
       <Card>
         <CardHeader className="pb-2">
-          <CardDescription>Total Spent</CardDescription>
+          <CardDescription>Total Pengeluaran</CardDescription>
           <CardTitle className="text-3xl">{formatCurrency(totalSpent)}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-xs text-muted-foreground">
-            {formatCurrency(totalBudgeted)} allocated across categories
+            {formatCurrency(totalBudgeted)} dialokasikan
           </div>
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="pb-2">
-          <CardDescription>Remaining Budget</CardDescription>
+          <CardDescription>Sisa Anggaran</CardDescription>
           <CardTitle className={`text-3xl ${remainingBudget < 0 ? 'text-destructive' : 'text-accent-foreground'}`}>
             {formatCurrency(remainingBudget)}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className={`text-xs ${remainingBudget < 0 ? 'text-destructive' : 'text-muted-foreground'}`}>
-            {remainingBudget < 0 ? 'You are over budget' : 'You are on track'}
+            {remainingBudget < 0 ? 'Anda melebihi anggaran' : 'Sesuai rencana'}
           </div>
         </CardContent>
       </Card>
@@ -108,15 +110,15 @@ export default function BudgetSummary({
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Set Your Monthly Budget</DialogTitle>
+            <DialogTitle>Atur Anggaran Bulanan</DialogTitle>
             <DialogDescription>
-              Enter your total income or the amount you want to budget for this month.
+              Masukkan total pendapatan atau jumlah yang ingin Anda anggarkan untuk bulan ini.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="budget" className="text-right">
-                Budget
+                Anggaran
               </Label>
               <Input
                 id="budget"
@@ -124,13 +126,13 @@ export default function BudgetSummary({
                 value={newBudget}
                 onChange={(e) => setNewBudget(e.target.value)}
                 className="col-span-3"
-                placeholder="e.g., 3000"
+                placeholder="cth: 5000000"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave}>Save</Button>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Batal</Button>
+            <Button onClick={handleSave}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
