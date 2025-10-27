@@ -10,7 +10,7 @@ type FirebaseClientProviderProps = {
   children: ReactNode;
 };
 
-export default function FirebaseClientProvider({children}: FirebaseClientProviderProps) {
+function FirebaseClientProvider({children}: FirebaseClientProviderProps) {
   const [firebaseInstance, setFirebaseInstance] = useState<{
     app: FirebaseApp;
     auth: Auth;
@@ -48,3 +48,5 @@ export default function FirebaseClientProvider({children}: FirebaseClientProvide
     </FirebaseProvider>
   );
 }
+
+export { FirebaseClientProvider };
