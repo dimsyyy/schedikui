@@ -17,17 +17,44 @@ import type {Category, Transaction, Budget} from '@/lib/types';
 import {useAuth, useFirestore, useUser, useCollection} from '@/firebase';
 import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
+import QuoteCard from '@/components/dashboard/quote-card';
 import CategoriesList from '@/components/dashboard/categories-list';
 import TransactionsList from '@/components/dashboard/transactions-list';
 import Footer from '@/components/footer';
 import {format} from 'date-fns';
 import {useToast} from '@/hooks/use-toast';
+import {generateQuote} from '@/ai/flows/generate-quote-flow';
 
 export default function DashboardPage() {
   const router = useRouter();
   const {toast} = useToast();
   const {user, loading: userLoading} = useUser();
   const firestore = useFirestore();
+
+  const [quote, setQuote] = useState('');
+  const [quoteLoading, setQuoteLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user && !userLoading) {
+      router.push('/login');
+    }
+  }, [user, userLoading, router]);
+
+  useEffect(() => {
+    generateQuote()
+      .then(result => {
+        setQuote(result.quote);
+      })
+      .catch(error => {
+        console.error('Error generating quote:', error);
+        setQuote(
+          'Kelola uangmu dengan bijak, maka masa depanmu akan lebih cerah.'
+        );
+      })
+      .finally(() => {
+        setQuoteLoading(false);
+      });
+  }, []);
 
   const [initialBudgetCreated, setInitialBudgetCreated] = useState(false);
   const monthKey = useMemo(() => format(new Date(), 'yyyy-MM'), []);
@@ -68,12 +95,6 @@ export default function DashboardPage() {
     loading: transactionsLoading,
     error: transactionsError,
   } = useCollection<Transaction>(transactionsQuery);
-
-  useEffect(() => {
-    if (!user && !userLoading) {
-      router.push('/login');
-    }
-  }, [user, userLoading, router]);
 
   useEffect(() => {
     if (
@@ -298,7 +319,6 @@ export default function DashboardPage() {
     }
   };
 
-
   const loading =
     userLoading || budgetsLoading || categoriesLoading || transactionsLoading;
 
@@ -334,6 +354,9 @@ export default function DashboardPage() {
             totalBudgeted={totalBudgeted}
             onSetBudget={handleSetBudget}
           />
+        </div>
+        <div className="grid gap-4">
+          <QuoteCard quote={quote} loading={quoteLoading} />
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
           <div className="xl:col-span-2">
