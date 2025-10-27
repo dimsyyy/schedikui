@@ -8,6 +8,7 @@ import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
 import CategoriesList from '@/components/dashboard/categories-list';
 import TransactionsList from '@/components/dashboard/transactions-list';
+import Footer from '@/components/footer';
 import {Sparkles} from 'lucide-react';
 import {format, subMonths, addMonths} from 'date-fns';
 import { id } from 'date-fns/locale';
@@ -222,6 +223,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }
