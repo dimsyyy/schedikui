@@ -14,7 +14,7 @@ import {
   getDocs,
 } from 'firebase/firestore';
 import type {Category, Transaction, Budget} from '@/lib/types';
-import {useAuth, useFirestore, useUser, useCollection} from '@/firebase';
+import {useFirestore, useUser, useCollection} from '@/firebase';
 import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
 import QuoteCard from '@/components/dashboard/quote-card';
@@ -35,7 +35,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Redirect to login if not authenticated after loading
-    if (!user && !userLoading) {
+    if (!userLoading && !user) {
       router.push('/login');
     }
   }, [user, userLoading, router]);
@@ -51,14 +51,17 @@ export default function DashboardPage() {
   const [initialBudgetCreated, setInitialBudgetCreated] = useState(false);
   const monthKey = useMemo(() => format(new Date(), 'yyyy-MM'), []);
 
-  const budgetQuery =
-    user && firestore
-      ? query(
-          collection(firestore, 'budgets'),
-          where('userId', '==', user.uid),
-          where('month', '==', monthKey)
-        )
-      : null;
+  // Ensure queries are only created when user and firestore are available
+  const budgetQuery = useMemo(() => {
+    if (user && firestore) {
+      return query(
+        collection(firestore, 'budgets'),
+        where('userId', '==', user.uid),
+        where('month', '==', monthKey)
+      );
+    }
+    return null;
+  }, [user, firestore, monthKey]);
 
   const {
     data: budgets,
@@ -68,20 +71,28 @@ export default function DashboardPage() {
   const budget = useMemo(() => (budgets && budgets[0]) || null, [budgets]);
   const budgetId = budget?.id;
 
-  const categoriesQuery =
-    budgetId && firestore
-      ? collection(firestore, 'budgets', budgetId, 'categories')
-      : null;
+  // Ensure queries are only created when budgetId and firestore are available
+  const categoriesQuery = useMemo(() => {
+    if (budgetId && firestore) {
+      return collection(firestore, 'budgets', budgetId, 'categories');
+    }
+    return null;
+  }, [budgetId, firestore]);
+
   const {
     data: categories,
     loading: categoriesLoading,
     error: categoriesError,
   } = useCollection<Category>(categoriesQuery);
 
-  const transactionsQuery =
-    budgetId && firestore
-      ? collection(firestore, 'budgets', budgetId, 'transactions')
-      : null;
+  // Ensure queries are only created when budgetId and firestore are available
+  const transactionsQuery = useMemo(() => {
+    if (budgetId && firestore) {
+      return collection(firestore, 'budgets', budgetId, 'transactions');
+    }
+    return null;
+  }, [budgetId, firestore]);
+
   const {
     data: transactions,
     loading: transactionsLoading,
@@ -93,13 +104,13 @@ export default function DashboardPage() {
       user &&
       firestore &&
       !budgetsLoading &&
-      !budgets?.length &&
+      budgets?.length === 0 &&
       !initialBudgetCreated
     ) {
       const createInitialBudget = async () => {
         setInitialBudgetCreated(true); // Prevent re-running
         try {
-          const newBudgetRef = await addDoc(collection(firestore, 'budgets'), {
+          await addDoc(collection(firestore, 'budgets'), {
             userId: user.uid,
             month: monthKey,
             monthlyBudget: 0,
@@ -311,8 +322,7 @@ export default function DashboardPage() {
     }
   };
 
-  const loading =
-    userLoading || budgetsLoading || categoriesLoading || transactionsLoading;
+  const loading = userLoading || (user && (budgetsLoading || categoriesLoading || transactionsLoading));
 
   // Show a loading screen while user status or data is being fetched.
   if (loading || userLoading || !user) {
