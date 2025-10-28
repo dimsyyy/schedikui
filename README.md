@@ -1,5 +1,5 @@
-# Firebase Studio
+#Schediku
 
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+Developed By: Dimas Yuda Pratama
+Design By: Dimas Yuda Pratama
+Created using: Firebase Studio
