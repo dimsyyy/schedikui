@@ -1,10 +1,10 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {signInWithEmailAndPassword} from 'firebase/auth';
-import {useAuth} from '@/firebase';
+import {useAuth, useUser} from '@/firebase';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -34,10 +34,17 @@ function getFirebaseErrorMessage(errorCode: string): string {
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
+  const {user, loading: userLoading} = useUser();
   const {toast} = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!userLoading && user) {
+      router.push('/');
+    }
+  }, [user, userLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,6 +69,14 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (userLoading || user) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
