@@ -23,9 +23,9 @@ function getFirebaseErrorMessage(errorCode: string): string {
     case 'auth/user-not-found':
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
-      return 'Username atau password salah. Silakan coba lagi.';
+      return 'Username/Email atau password salah. Silakan coba lagi.';
     case 'auth/invalid-email':
-      return 'Format username tidak valid.';
+      return 'Format username/email tidak valid.';
     default:
       return 'Terjadi kesalahan. Silakan coba lagi nanti.';
   }
@@ -36,7 +36,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const {user, loading: userLoading} = useUser();
   const {toast} = useToast();
-  const [username, setUsername] = useState('');
+  const [loginInput, setLoginInput] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -51,11 +51,19 @@ export default function LoginPage() {
     setLoading(true);
     if (!auth) return;
 
-    // Create a dummy email for Firebase Auth
-    const email = `${username.toLowerCase()}@schediku.app`;
+    let emailToLogin: string;
+
+    // Check if the input is an email or a username
+    if (loginInput.includes('@')) {
+      // User is likely logging in with their old email
+      emailToLogin = loginInput.toLowerCase();
+    } else {
+      // User is logging in with a username, construct the dummy email
+      emailToLogin = `${loginInput.toLowerCase()}@schediku.app`;
+    }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(auth, emailToLogin, password);
       toast({
         title: 'Login Berhasil!',
         description: 'Anda akan diarahkan ke dashboard.',
@@ -94,21 +102,21 @@ export default function LoginPage() {
           </Link>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Masukkan username Anda di bawah untuk login ke akun Anda
+            Masukkan username atau email Anda untuk login
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="login_input">Username atau Email</Label>
                 <Input
-                  id="username"
+                  id="login_input"
                   type="text"
-                  placeholder="username_anda"
+                  placeholder="username atau email@anda.com"
                   required
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
+                  value={loginInput}
+                  onChange={e => setLoginInput(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
