@@ -93,13 +93,16 @@ export default function LoginPage() {
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
       <Card className="mx-auto max-w-sm">
         <CardHeader className="text-center">
-          <Link
-            href="#"
-            className="flex justify-center items-center gap-2 text-lg font-semibold md:text-base mb-4"
-          >
-            <Icons.Logo className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold tracking-tight">Schediku</h1>
-          </Link>
+          <div className="flex flex-col items-center justify-center gap-2 mb-4">
+            <Link
+              href="#"
+              className="flex justify-center items-center gap-2 text-lg font-semibold md:text-base"
+            >
+              <Icons.Logo className="h-8 w-8 text-primary" />
+              <h1 className="text-2xl font-bold tracking-tight">Schediku</h1>
+            </Link>
+            <p className="text-sm text-muted-foreground px-4">Lacak pengeluaran & buat anggaran untuk kejelasan finansial</p>
+          </div>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
             Masukkan username atau email Anda untuk login
