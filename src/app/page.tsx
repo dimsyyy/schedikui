@@ -201,29 +201,39 @@ export default function DashboardPage() {
 
   const handleAddCategory = async (
     name: string,
-    budget: number,
+    budgetAmount: number,
     iconName: string
   ) => {
-    if (budgetId && firestore) {
-      try {
-        await addDoc(collection(firestore, 'budgets', budgetId, 'categories'), {
-          name,
-          budget,
-          iconName,
-          spent: 0,
-        });
-        toast({
-          title: 'Sukses',
-          description: `Kategori "${name}" berhasil ditambahkan.`,
-        });
-      } catch (error) {
-        console.error('Error adding category:', error);
-        toast({
-          title: 'Gagal',
-          description: 'Gagal menambahkan kategori baru.',
-          variant: 'destructive',
-        });
-      }
+    if (!budgetId || !firestore || !budget) return;
+
+    const unallocated = budget.monthlyBudget - totalBudgeted;
+    if (budgetAmount > unallocated) {
+      toast({
+        title: 'Gagal',
+        description: 'Tidak bisa membuat anggaran, jumlah anggaran lebih besar dari pada jumlah dana saat ini!',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await addDoc(collection(firestore, 'budgets', budgetId, 'categories'), {
+        name,
+        budget: budgetAmount,
+        iconName,
+        spent: 0,
+      });
+      toast({
+        title: 'Sukses',
+        description: `Kategori "${name}" berhasil ditambahkan.`,
+      });
+    } catch (error) {
+      console.error('Error adding category:', error);
+      toast({
+        title: 'Gagal',
+        description: 'Gagal menambahkan kategori baru.',
+        variant: 'destructive',
+      });
     }
   };
 
