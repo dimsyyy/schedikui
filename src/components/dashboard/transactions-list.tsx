@@ -51,7 +51,7 @@ export default function TransactionsList({
   onAddCategoryClick,
 }: TransactionsListProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [visibleCount, setVisibleCount] = useState(10);
+  const [visibleCount, setVisibleCount] = useState(5);
 
   // Sort transactions by date descending
   const sortedTransactions = [...transactions].sort(
@@ -146,18 +146,18 @@ export default function TransactionsList({
           </div>
         )}
       </CardContent>
-      {(sortedTransactions.length > 10 || visibleCount > 10) && (
+      {(sortedTransactions.length > 5 || visibleCount > 5) && (
         <CardFooter className="justify-center gap-2 pt-4">
           {sortedTransactions.length > visibleCount && (
             <Button
               variant="outline"
-              onClick={() => setVisibleCount(prev => prev + 10)}
+              onClick={() => setVisibleCount(prev => prev + 5)}
             >
               Lihat Transaksi Lainnya
             </Button>
           )}
-          {visibleCount > 10 && (
-            <Button variant="ghost" onClick={() => setVisibleCount(10)}>
+          {visibleCount > 5 && (
+            <Button variant="ghost" onClick={() => setVisibleCount(5)}>
               Tampilkan Lebih Sedikit
             </Button>
           )}
