@@ -68,7 +68,7 @@ export default function BudgetSummary({
 
   return (
     <>
-      <Card className="sm:col-span-2 bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg">
+      <Card className="sm:col-span-2 bg-gradient-to-br from-primary to-secondary dark:from-primary/80 dark:to-primary text-primary-foreground shadow-lg">
         <CardHeader className="pb-2">
           <div className="flex justify-center items-center text-center">
             <div>
@@ -95,7 +95,8 @@ export default function BudgetSummary({
             <Progress
               value={spendingProgress}
               aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`}
-              className="bg-primary/30"
+              className="bg-primary/30 dark:bg-white/20"
+              indicatorClassName="bg-white dark:bg-sky-300"
             />
           </div>
            <div className="flex w-full gap-2 pt-2">
