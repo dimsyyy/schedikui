@@ -43,19 +43,20 @@ service cloud.firestore {
      * @deny (list) - User listing is not allowed.
      * @principle Enforces document ownership for all operations.
      */
-    match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-      function isSignedIn() {
-        return request.auth != null;
-      }
-      allow get: if isSignedIn() && isOwner(userId);
-      allow list: if false;
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && isOwner(userId);
-      allow delete: if isSignedIn() && isOwner(userId);
-    }
+match /users/{userId} {
+  function isOwner(userId) {
+    return request.auth.uid == userId;
+  }
+  function isSignedIn() {
+    return request.auth != null;
+  }
+  allow get: if isSignedIn() && (resource == null || isOwner(userId));
+  allow list: if false;
+  allow create: if isSignedIn() && isOwner(userId);
+  allow update: if isSignedIn() && isOwner(userId);
+  allow delete: if isSignedIn() && isOwner(userId);
+}
+
 
     /**
      * @description Secures monthly budget documents.

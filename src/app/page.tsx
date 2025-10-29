@@ -13,8 +13,10 @@ import {
   writeBatch,
   getDocs,
   increment,
+  setDoc,
+  getDoc,
 } from 'firebase/firestore';
-import type {Category, Transaction, Budget} from '@/lib/types';
+import type {Category, Transaction, Budget, UserProfile} from '@/lib/types';
 import {useFirestore, useUser, useCollection} from '@/firebase';
 import Header from '@/components/dashboard/header';
 import BudgetSummary from '@/components/dashboard/budget-summary';
@@ -42,6 +44,31 @@ export default function DashboardPage() {
       router.push('/login');
     }
   }, [user, userLoading, router]);
+
+  // Effect to create user profile if it doesn't exist (after registration)
+  useEffect(() => {
+    if (user && firestore) {
+      const userDocRef = doc(firestore, 'users', user.uid);
+      getDoc(userDocRef).then(docSnap => {
+        if (!docSnap.exists()) {
+          const userProfileData: Omit<UserProfile, 'id'> = {
+            displayName: user.displayName || 'Pengguna Baru',
+            email: user.email || '',
+            createdAt: new Date().toISOString(),
+          };
+          setDoc(userDocRef, userProfileData).catch(error => {
+            console.error('Error creating user profile:', error);
+            toast({
+              title: 'Gagal Membuat Profil',
+              description:
+                'Tidak dapat membuat profil pengguna di database.',
+              variant: 'destructive',
+            });
+          });
+        }
+      });
+    }
+  }, [user, firestore, toast]);
 
   useEffect(() => {
     const interval = setInterval(() => {

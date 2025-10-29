@@ -20,11 +20,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {Avatar, AvatarFallback, AvatarImage} from '../ui/avatar';
 import {cn} from '@/lib/utils';
+import type { UserProfile } from '@/lib/types';
 
-type UserProfile = {
-  displayName: string;
-  username?: string; // Make username optional
-};
 
 export default function Header() {
   const auth = useAuth();
@@ -67,22 +64,6 @@ export default function Header() {
       .toUpperCase();
   };
 
-  const getDisplayUsername = () => {
-    if (userProfile?.username) {
-      return userProfile.username;
-    }
-    if (user?.email) {
-      // For old users, their email is not a dummy one
-      if (!user.email.endsWith('@schediku.app')) {
-        return user.email;
-      }
-      // For new users, derive username from dummy email
-      return user.email.split('@')[0];
-    }
-    return 'user';
-  };
-
-
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 shadow-sm backdrop-blur sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:shadow-none">
       <Link
@@ -120,7 +101,7 @@ export default function Header() {
                     {userProfile?.displayName || user.displayName}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    @{getDisplayUsername()}
+                    {userProfile?.email || user.email}
                   </p>
                 </div>
               </DropdownMenuLabel>

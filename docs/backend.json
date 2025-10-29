@@ -9,9 +9,10 @@
           "type": "string",
           "description": "The user's full name."
         },
-        "username": {
+        "email": {
           "type": "string",
-          "description": "The user's unique username."
+          "format": "email",
+          "description": "The user's email address."
         },
         "createdAt": {
           "type": "string",
@@ -19,7 +20,7 @@
           "description": "The timestamp when the user account was created."
         }
       },
-      "required": ["displayName", "username", "createdAt"]
+      "required": ["displayName", "email", "createdAt"]
     },
     "Budget": {
       "title": "Budget",

@@ -3,6 +3,13 @@ import type * as Lucide from 'lucide-react';
 
 export type IconName = keyof Omit<typeof Lucide, 'createLucideIcon' | 'LucideIcon'>;
 
+export type UserProfile = {
+  id: string;
+  displayName: string;
+  email: string;
+  createdAt: string;
+};
+
 export type Category = {
   id: string;
   name: string;

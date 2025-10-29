@@ -1,11 +1,10 @@
 'use client';
 
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {createUserWithEmailAndPassword, updateProfile} from 'firebase/auth';
-import {doc, setDoc, getDocs, query, where, collection} from 'firebase/firestore';
-import {useAuth, useFirestore} from '@/firebase';
+import {useAuth, useFirestore, useUser} from '@/firebase';
 import {Button} from '@/components/ui/button';
 import {
   Card,
@@ -22,11 +21,11 @@ import {useToast} from '@/hooks/use-toast';
 function getFirebaseErrorMessage(errorCode: string): string {
   switch (errorCode) {
     case 'auth/email-already-in-use':
-      return 'Username ini sudah terdaftar. Silakan gunakan username lain.';
+      return 'Email ini sudah terdaftar. Silakan gunakan email lain.';
     case 'auth/weak-password':
       return 'Password terlalu lemah. Gunakan minimal 6 karakter.';
     case 'auth/invalid-email':
-      return 'Format username tidak valid. Hanya gunakan huruf, angka, dan underscore.';
+      return 'Format email tidak valid.';
     default:
       return 'Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.';
   }
@@ -35,23 +34,22 @@ function getFirebaseErrorMessage(errorCode: string): string {
 export default function RegisterPage() {
   const router = useRouter();
   const auth = useAuth();
-  const firestore = useFirestore();
+  const {user, loading: userLoading} = useUser();
   const {toast} = useToast();
   const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isUsernameTaken = async (username: string) => {
-    if (!firestore) return false;
-    const q = query(collection(firestore, "users"), where("username", "==", username));
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
-  };
+  useEffect(() => {
+    if (!userLoading && user) {
+      router.push('/');
+    }
+  }, [user, userLoading, router]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !username) {
+    if (!name || !email) {
       toast({
         title: 'Registrasi Gagal',
         description: 'Semua field harus diisi.',
@@ -59,32 +57,9 @@ export default function RegisterPage() {
       });
       return;
     }
-    
-    if (username.includes('@')) {
-      toast({
-        title: 'Registrasi Gagal',
-        description: 'Username tidak boleh mengandung simbol "@".',
-        variant: 'destructive',
-      });
-      return;
-    }
 
     setLoading(true);
-    if (!auth || !firestore) return;
-
-    const usernameExists = await isUsernameTaken(username);
-    if (usernameExists) {
-        toast({
-            title: 'Registrasi Gagal',
-            description: 'Username ini sudah terdaftar. Silakan gunakan username lain.',
-            variant: 'destructive',
-        });
-        setLoading(false);
-        return;
-    }
-
-    // Create a dummy email for Firebase Auth from the username
-    const email = `${username.toLowerCase()}@schediku.app`;
+    if (!auth) return;
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -94,15 +69,10 @@ export default function RegisterPage() {
       );
       const user = userCredential.user;
 
-      // Update Firebase Auth profile
+      // Update Firebase Auth profile displayName
       await updateProfile(user, {displayName: name});
 
-      // Create user profile in Firestore with username
-      await setDoc(doc(firestore, 'users', user.uid), {
-        displayName: name,
-        username: username,
-        createdAt: new Date().toISOString(),
-      });
+      // The user profile document will be created on the first visit to the dashboard page.
 
       toast({
         title: 'Registrasi Berhasil!',
@@ -122,6 +92,14 @@ export default function RegisterPage() {
       setLoading(false);
     }
   };
+
+  if (userLoading || user) {
+    return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-muted/40">
@@ -157,14 +135,14 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="username"
-                  type="text"
-                  placeholder="username_anda"
+                  id="email"
+                  type="email"
+                  placeholder="email@anda.com"
                   required
-                  value={username}
-                  onChange={e => setUsername(e.target.value)}
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
