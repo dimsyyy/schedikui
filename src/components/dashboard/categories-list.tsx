@@ -54,6 +54,8 @@ type CategoriesListProps = {
   onSetCategoryBudget: (categoryId: string, budget: number) => void;
   onAddCategory: (name: string, budget: number, iconName: IconName) => void;
   onDeleteCategory: (categoryId: string) => void;
+  isAddCategoryDialogOpen: boolean;
+  setIsAddCategoryDialogOpen: (isOpen: boolean) => void;
 };
 
 export default function CategoriesList({
@@ -63,8 +65,9 @@ export default function CategoriesList({
   onSetCategoryBudget,
   onAddCategory,
   onDeleteCategory,
+  isAddCategoryDialogOpen,
+  setIsAddCategoryDialogOpen,
 }: CategoriesListProps) {
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -84,7 +87,7 @@ export default function CategoriesList({
           <CardTitle>Alokasi Anggaran</CardTitle>
           <CardDescription>Atur anggaran untuk tiap kategori.</CardDescription>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        <Dialog open={isAddCategoryDialogOpen} onOpenChange={setIsAddCategoryDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" variant="outline">
               <Plus className="h-4 w-4 mr-2" />
@@ -93,7 +96,7 @@ export default function CategoriesList({
           </DialogTrigger>
           <AddCategoryDialog
             onAddCategory={onAddCategory}
-            setIsOpen={setIsAddDialogOpen}
+            setIsOpen={setIsAddCategoryDialogOpen}
           />
         </Dialog>
       </CardHeader>

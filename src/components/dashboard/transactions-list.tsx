@@ -40,12 +40,14 @@ type TransactionsListProps = {
   transactions: Transaction[];
   categories: Category[];
   onAddTransaction: (transaction: Omit<Transaction, 'id' | 'date'>) => void;
+  onAddCategoryClick: () => void;
 };
 
 export default function TransactionsList({
   transactions,
   categories,
   onAddTransaction,
+  onAddCategoryClick,
 }: TransactionsListProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
@@ -97,6 +99,7 @@ export default function TransactionsList({
             categories={categories}
             onAddTransaction={onAddTransaction}
             setIsOpen={setIsAddDialogOpen}
+            onAddCategoryClick={onAddCategoryClick}
           />
         </Dialog>
       </CardHeader>
@@ -147,10 +150,12 @@ function AddTransactionDialog({
   categories,
   onAddTransaction,
   setIsOpen,
+  onAddCategoryClick,
 }: {
   categories: Category[];
   onAddTransaction: (transaction: Omit<Transaction, 'id' | 'date'>) => void;
   setIsOpen: (open: boolean) => void;
+  onAddCategoryClick: () => void;
 }) {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -187,6 +192,11 @@ function AddTransactionDialog({
     setAmount('');
     setCategoryId('');
     setType('expense');
+  };
+  
+  const handleCreateCategoryClick = () => {
+    setIsOpen(false); // Close current dialog
+    onAddCategoryClick(); // Open category dialog
   };
 
   return (
@@ -242,18 +252,25 @@ function AddTransactionDialog({
           {type === 'expense' && (
             <div className="space-y-2">
               <Label htmlFor="category">Kategori</Label>
-              <Select onValueChange={setCategoryId} value={categoryId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih kategori" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map(cat => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {categories.length > 0 ? (
+                 <Select onValueChange={setCategoryId} value={categoryId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih kategori" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map(cat => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Button variant="outline" className="w-full justify-start text-muted-foreground" onClick={handleCreateCategoryClick}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Buat Kategori Dulu
+                </Button>
+              )}
             </div>
           )}
         </div>

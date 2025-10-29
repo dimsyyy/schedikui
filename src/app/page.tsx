@@ -33,6 +33,8 @@ export default function DashboardPage() {
   const firestore = useFirestore();
 
   const [quoteIndex, setQuoteIndex] = useState(0);
+  const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
+
 
   useEffect(() => {
     // Redirect to login if not authenticated after loading
@@ -368,6 +370,7 @@ export default function DashboardPage() {
               transactions={transactions || []}
               categories={categories || []}
               onAddTransaction={handleAddTransaction}
+              onAddCategoryClick={() => setIsAddCategoryDialogOpen(true)}
             />
           </div>
           <div>
@@ -378,6 +381,8 @@ export default function DashboardPage() {
               onDeleteCategory={handleDeleteCategory}
               totalBudgeted={totalBudgeted}
               monthlyBudget={budget?.monthlyBudget || 0}
+              isAddCategoryDialogOpen={isAddCategoryDialogOpen}
+              setIsAddCategoryDialogOpen={setIsAddCategoryDialogOpen}
             />
           </div>
         </div>
