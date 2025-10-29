@@ -20,7 +20,7 @@ import {
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {Pencil, AlertTriangle, PlusCircle} from 'lucide-react';
+import {Pencil, AlertTriangle} from 'lucide-react';
 import {Progress} from '../ui/progress';
 import {format} from 'date-fns';
 import {id} from 'date-fns/locale';
@@ -30,7 +30,6 @@ type BudgetSummaryProps = {
   totalSpent: number;
   totalBudgeted: number;
   onSetBudget: (amount: number) => void;
-  onAddFunds: (amount: number) => void;
 };
 
 export default function BudgetSummary({
@@ -38,13 +37,9 @@ export default function BudgetSummary({
   totalSpent,
   totalBudgeted,
   onSetBudget,
-  onAddFunds,
 }: BudgetSummaryProps) {
   const [isSetBudgetDialogOpen, setIsSetBudgetDialogOpen] = useState(false);
-  const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
-
   const [newBudget, setNewBudget] = useState(monthlyBudget.toString());
-  const [additionalFunds, setAdditionalFunds] = useState('');
 
   const remainingBudget = monthlyBudget - totalSpent;
   const spendingProgress =
@@ -69,15 +64,6 @@ export default function BudgetSummary({
       onSetBudget(amount);
     }
     setIsSetBudgetDialogOpen(false);
-  };
-
-  const handleSaveFunds = () => {
-    const amount = parseFloat(additionalFunds);
-    if (!isNaN(amount) && amount > 0) {
-      onAddFunds(amount);
-    }
-    setIsAddFundsDialogOpen(false);
-    setAdditionalFunds('');
   };
 
   return (
@@ -111,7 +97,7 @@ export default function BudgetSummary({
               aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`}
             />
           </div>
-          <div className="flex w-full gap-2 pt-2">
+           <div className="flex w-full gap-2 pt-2">
             <Button
               variant="outline"
               className="w-full"
@@ -119,14 +105,6 @@ export default function BudgetSummary({
             >
               <Pencil className="h-4 w-4 mr-2" />
               Atur Anggaran
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => setIsAddFundsDialogOpen(true)}
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Tambah Dana
             </Button>
           </div>
         </CardFooter>
@@ -179,10 +157,11 @@ export default function BudgetSummary({
       <Dialog open={isSetBudgetDialogOpen} onOpenChange={setIsSetBudgetDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Atur Anggaran Bulanan</DialogTitle>
+            <DialogTitle>Atur Ulang Anggaran Bulanan</DialogTitle>
             <DialogDescription>
               Masukkan total pendapatan atau jumlah yang ingin Anda anggarkan
-              untuk bulan ini. Ini akan menggantikan nilai anggaran saat ini.
+              untuk bulan ini. Ini akan **menggantikan** nilai anggaran saat ini.
+              Untuk menambah dana, gunakan fitur "Tambah Transaksi".
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -208,46 +187,6 @@ export default function BudgetSummary({
               Batal
             </Button>
             <Button onClick={handleSaveBudget}>Simpan</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Funds Dialog */}
-      <Dialog open={isAddFundsDialogOpen} onOpenChange={setIsAddFundsDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Tambah Dana Tambahan</DialogTitle>
-            <DialogDescription>
-              Masukkan jumlah dana yang ingin ditambahkan ke anggaran bulan
-              ini.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="add-funds" className="text-right">
-                Jumlah
-              </Label>
-              <Input
-                id="add-funds"
-                type="number"
-                value={additionalFunds}
-                onChange={e => setAdditionalFunds(e.target.value)}
-                className="col-span-3"
-                placeholder="cth: 500000"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsAddFundsDialogOpen(false);
-                setAdditionalFunds('');
-              }}
-            >
-              Batal
-            </Button>
-            <Button onClick={handleSaveFunds}>Tambah</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

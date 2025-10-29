@@ -172,27 +172,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleAddFunds = async (amount: number) => {
-    if (budgetId && firestore) {
-      try {
-        await updateDoc(doc(firestore, 'budgets', budgetId), {
-          monthlyBudget: increment(amount),
-        });
-        toast({
-          title: 'Sukses',
-          description: 'Dana tambahan berhasil ditambahkan ke anggaran.',
-        });
-      } catch (error) {
-        console.error('Error adding funds:', error);
-        toast({
-          title: 'Gagal',
-          description: 'Gagal menambahkan dana tambahan.',
-          variant: 'destructive',
-        });
-      }
-    }
-  };
-
   const handleSetCategoryBudget = async (
     categoryId: string,
     budget: number
@@ -287,49 +266,45 @@ export default function DashboardPage() {
   };
 
   const handleAddTransaction = async (
-    amount: number,
-    categoryId: string,
-    description: string
+    transaction: Omit<Transaction, 'id' | 'date'>
   ) => {
-    if (!budgetId || !firestore || !categories) return;
+    if (!budgetId || !firestore) return;
 
-    const category = categories.find(c => c.id === categoryId);
-    if (!category) {
-      toast({
-        title: 'Gagal',
-        description: 'Kategori tidak ditemukan.',
-        variant: 'destructive',
-      });
-      return;
-    }
     try {
       const batch = writeBatch(firestore);
-
-      // Add new transaction
       const transactionRef = doc(
         collection(firestore, 'budgets', budgetId, 'transactions')
       );
+      
       batch.set(transactionRef, {
-        amount,
-        categoryId,
-        description,
+        ...transaction,
         date: new Date().toISOString(),
       });
 
-      // Update category's spent amount
-      const categoryRef = doc(
-        firestore,
-        'budgets',
-        budgetId,
-        'categories',
-        categoryId
-      );
-      batch.update(categoryRef, {
-        spent: category.spent + amount,
-      });
+      if (transaction.type === 'expense') {
+        const category = categories?.find(c => c.id === transaction.categoryId);
+        if (!category) {
+          toast({
+            title: 'Gagal',
+            description: 'Kategori tidak ditemukan.',
+            variant: 'destructive',
+          });
+          return;
+        }
+        const categoryRef = doc(
+          firestore,
+          'budgets',
+          budgetId,
+          'categories',
+          transaction.categoryId
+        );
+        batch.update(categoryRef, { spent: increment(transaction.amount) });
+      } else if (transaction.type === 'income') {
+        const budgetRef = doc(firestore, 'budgets', budgetId);
+        batch.update(budgetRef, { monthlyBudget: increment(transaction.amount) });
+      }
 
       await batch.commit();
-
       toast({
         title: 'Sukses',
         description: 'Transaksi berhasil ditambahkan.',
@@ -343,6 +318,7 @@ export default function DashboardPage() {
       });
     }
   };
+
 
   const loading =
     userLoading ||
@@ -381,7 +357,6 @@ export default function DashboardPage() {
             totalSpent={totalSpent}
             totalBudgeted={totalBudgeted}
             onSetBudget={handleSetBudget}
-            onAddFunds={handleAddFunds}
           />
         </div>
         <div className="grid gap-4">

@@ -13,10 +13,11 @@ export type Category = {
 
 export type Transaction = {
   id: string;
-  categoryId: string;
+  categoryId: string; // Will be 'income' for income transactions
   amount: number;
   description: string;
   date: string;
+  type: 'income' | 'expense';
 };
 
 export type DefaultCategory = {
