@@ -68,14 +68,14 @@ export default function BudgetSummary({
 
   return (
     <>
-      <Card className="sm:col-span-2 bg-gradient-to-br from-primary to-secondary dark:from-primary/80 dark:to-primary text-primary-foreground shadow-lg">
+      <Card className="sm:col-span-2 bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg dark:bg-gradient-to-br dark:from-card dark:to-muted/30 dark:text-foreground dark:border dark:border-border">
         <CardHeader className="pb-2">
           <div className="flex justify-center items-center text-center">
             <div>
               <CardTitle className="text-lg capitalize">
                 {format(currentMonthDate, 'MMMM yyyy', {locale: id})}
               </CardTitle>
-              <CardDescription className="text-primary-foreground/80">Ringkasan Bulanan</CardDescription>
+              <CardDescription className="text-primary-foreground/80 dark:text-muted-foreground">Ringkasan Bulanan</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -83,26 +83,26 @@ export default function BudgetSummary({
           <div className="text-4xl font-bold flex items-center justify-center gap-2">
             {formatCurrency(monthlyBudget)}
           </div>
-          <CardDescription className="text-primary-foreground/80">Total anggaran bulanan Anda.</CardDescription>
+          <CardDescription className="text-primary-foreground/80 dark:text-muted-foreground">Total anggaran bulanan Anda.</CardDescription>
         </CardContent>
 
         <CardFooter className="flex-col gap-2">
           <div className="w-full">
-            <div className="flex justify-between text-sm text-primary-foreground/80 mb-1">
+            <div className="flex justify-between text-sm text-primary-foreground/80 dark:text-muted-foreground mb-1">
               <span>Terpakai: {formatCurrency(totalSpent)}</span>
               <span>Sisa: {formatCurrency(remainingBudget)}</span>
             </div>
             <Progress
               value={spendingProgress}
               aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`}
-              className="bg-primary/30 dark:bg-white/20"
-              indicatorClassName="bg-white dark:bg-sky-300"
+              className="bg-primary/30 dark:bg-muted"
+              indicatorClassName="bg-white dark:bg-primary"
             />
           </div>
            <div className="flex w-full gap-2 pt-2">
             <Button
               variant="outline"
-              className="w-full bg-white/20 text-white border-white/30 hover:bg-white/30"
+              className="w-full bg-white/20 text-white border-white/30 hover:bg-white/30 dark:bg-transparent dark:text-foreground dark:hover:bg-accent dark:hover:text-accent-foreground"
               onClick={() => setIsSetBudgetDialogOpen(true)}
             >
               <Pencil className="h-4 w-4 mr-2" />
