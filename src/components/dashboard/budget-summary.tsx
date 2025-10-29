@@ -111,19 +111,7 @@ export default function BudgetSummary({
           </div>
         </CardFooter>
       </Card>
-      <Card>
-        <CardHeader className="pb-2">
-          <CardDescription>Total Pengeluaran</CardDescription>
-          <CardTitle className="text-3xl text-destructive">
-            {formatCurrency(totalSpent)}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-xs text-muted-foreground">
-            {formatCurrency(totalBudgeted)} dialokasikan
-          </div>
-        </CardContent>
-      </Card>
+      
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>Sisa Anggaran</CardDescription>
@@ -154,8 +142,20 @@ export default function BudgetSummary({
           </div>
         </CardContent>
       </Card>
+      <Card>
+        <CardHeader className="pb-2">
+          <CardDescription>Total Pengeluaran</CardDescription>
+          <CardTitle className="text-3xl text-destructive">
+            {formatCurrency(totalSpent)}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-xs text-muted-foreground">
+            {formatCurrency(totalBudgeted)} dialokasikan
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Set Budget Dialog */}
       <Dialog open={isSetBudgetDialogOpen} onOpenChange={setIsSetBudgetDialogOpen}>
         <DialogContent>
           <DialogHeader>
