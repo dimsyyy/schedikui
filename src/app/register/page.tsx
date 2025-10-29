@@ -4,7 +4,7 @@ import {useState} from 'react';
 import {useRouter} from 'next/navigation';
 import Link from 'next/link';
 import {createUserWithEmailAndPassword, updateProfile} from 'firebase/auth';
-import {doc, setDoc} from 'firebase/firestore';
+import {doc, setDoc, getDocs, query, where, collection} from 'firebase/firestore';
 import {useAuth, useFirestore} from '@/firebase';
 import {Button} from '@/components/ui/button';
 import {
@@ -22,11 +22,11 @@ import {useToast} from '@/hooks/use-toast';
 function getFirebaseErrorMessage(errorCode: string): string {
   switch (errorCode) {
     case 'auth/email-already-in-use':
-      return 'Email ini sudah terdaftar. Silakan gunakan email lain atau login.';
+      return 'Username ini sudah terdaftar. Silakan gunakan username lain.';
     case 'auth/weak-password':
       return 'Password terlalu lemah. Gunakan minimal 6 karakter.';
     case 'auth/invalid-email':
-      return 'Format email tidak valid. Silakan periksa kembali.';
+      return 'Format username tidak valid. Hanya gunakan huruf, angka, dan underscore.';
     default:
       return 'Terjadi kesalahan yang tidak diketahui. Silakan coba lagi.';
   }
@@ -38,22 +38,53 @@ export default function RegisterPage() {
   const firestore = useFirestore();
   const {toast} = useToast();
   const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const isUsernameTaken = async (username: string) => {
+    if (!firestore) return false;
+    const q = query(collection(firestore, "users"), where("username", "==", username));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+  };
+
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name) {
+    if (!name || !username) {
       toast({
         title: 'Registrasi Gagal',
-        description: 'Nama lengkap harus diisi.',
+        description: 'Semua field harus diisi.',
         variant: 'destructive',
       });
       return;
     }
+    
+    if (username.includes('@')) {
+      toast({
+        title: 'Registrasi Gagal',
+        description: 'Username tidak boleh mengandung simbol "@".',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     if (!auth || !firestore) return;
+
+    const usernameExists = await isUsernameTaken(username);
+    if (usernameExists) {
+        toast({
+            title: 'Registrasi Gagal',
+            description: 'Username ini sudah terdaftar. Silakan gunakan username lain.',
+            variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+    }
+
+    // Create a dummy email for Firebase Auth from the username
+    const email = `${username.toLowerCase()}@schediku.app`;
 
     try {
       const userCredential = await createUserWithEmailAndPassword(
@@ -66,10 +97,10 @@ export default function RegisterPage() {
       // Update Firebase Auth profile
       await updateProfile(user, {displayName: name});
 
-      // Create user profile in Firestore
+      // Create user profile in Firestore with username
       await setDoc(doc(firestore, 'users', user.uid), {
         displayName: name,
-        email: user.email,
+        username: username,
         createdAt: new Date().toISOString(),
       });
 
@@ -123,14 +154,14 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  id="username"
+                  type="text"
+                  placeholder="username_anda"
                   required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">

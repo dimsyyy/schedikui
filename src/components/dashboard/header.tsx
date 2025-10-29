@@ -1,8 +1,10 @@
 'use client';
+import {useEffect, useState} from 'react';
 import Link from 'next/link';
 import {useRouter} from 'next/navigation';
 import {signOut} from 'firebase/auth';
-import {useAuth, useUser} from '@/firebase';
+import {doc, getDoc} from 'firebase/firestore';
+import {useAuth, useUser, useFirestore} from '@/firebase';
 import {Icons} from '@/components/icons';
 import {ThemeToggle} from '@/components/theme-toggle';
 import {Button} from '../ui/button';
@@ -18,11 +20,31 @@ import {
 } from '@/components/ui/dropdown-menu';
 import {Avatar, AvatarFallback, AvatarImage} from '../ui/avatar';
 
+type UserProfile = {
+  displayName: string;
+  username: string;
+};
+
 export default function Header() {
   const auth = useAuth();
+  const firestore = useFirestore();
   const {user} = useUser();
   const router = useRouter();
   const {toast} = useToast();
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user && firestore) {
+        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (userDoc.exists()) {
+          setUserProfile(userDoc.data() as UserProfile);
+        }
+      }
+    };
+    fetchUserProfile();
+  }, [user, firestore]);
 
   const handleLogout = async () => {
     if (auth) {
@@ -78,10 +100,10 @@ export default function Header() {
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {user.displayName}
+                    {userProfile?.displayName}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    {user.email}
+                    @{userProfile?.username}
                   </p>
                 </div>
               </DropdownMenuLabel>

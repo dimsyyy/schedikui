@@ -23,9 +23,9 @@ function getFirebaseErrorMessage(errorCode: string): string {
     case 'auth/user-not-found':
     case 'auth/wrong-password':
     case 'auth/invalid-credential':
-      return 'Email atau password salah. Silakan coba lagi.';
+      return 'Username atau password salah. Silakan coba lagi.';
     case 'auth/invalid-email':
-      return 'Format email tidak valid.';
+      return 'Format username tidak valid.';
     default:
       return 'Terjadi kesalahan. Silakan coba lagi nanti.';
   }
@@ -36,7 +36,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const {user, loading: userLoading} = useUser();
   const {toast} = useToast();
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -50,6 +50,9 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     if (!auth) return;
+
+    // Create a dummy email for Firebase Auth
+    const email = `${username.toLowerCase()}@schediku.app`;
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -91,21 +94,21 @@ export default function LoginPage() {
           </Link>
           <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>
-            Masukkan email Anda di bawah untuk login ke akun Anda
+            Masukkan username Anda di bawah untuk login ke akun Anda
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin}>
             <div className="grid gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="emailkamu@example.com"
+                  id="username"
+                  type="text"
+                  placeholder="username_anda"
                   required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
                 />
               </div>
               <div className="grid gap-2">
