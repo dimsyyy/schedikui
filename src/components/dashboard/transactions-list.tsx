@@ -9,6 +9,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
@@ -50,11 +51,14 @@ export default function TransactionsList({
   onAddCategoryClick,
 }: TransactionsListProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   // Sort transactions by date descending
   const sortedTransactions = [...transactions].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+
+  const displayedTransactions = sortedTransactions.slice(0, visibleCount);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -81,7 +85,7 @@ export default function TransactionsList({
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full flex flex-col">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Transaksi Terkini</CardTitle>
@@ -103,10 +107,10 @@ export default function TransactionsList({
           />
         </Dialog>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow">
         {sortedTransactions.length > 0 ? (
           <div className="space-y-4">
-            {sortedTransactions.slice(0, 10).map(transaction => {
+            {displayedTransactions.map(transaction => {
               const Icon = getCategoryIcon(transaction);
               return (
                 <div key={transaction.id} className="flex items-center gap-4">
@@ -142,6 +146,23 @@ export default function TransactionsList({
           </div>
         )}
       </CardContent>
+      {(sortedTransactions.length > 10 || visibleCount > 10) && (
+        <CardFooter className="justify-center gap-2 pt-4">
+          {sortedTransactions.length > visibleCount && (
+            <Button
+              variant="outline"
+              onClick={() => setVisibleCount(prev => prev + 10)}
+            >
+              Lihat Transaksi Lainnya
+            </Button>
+          )}
+          {visibleCount > 10 && (
+            <Button variant="ghost" onClick={() => setVisibleCount(10)}>
+              Tampilkan Lebih Sedikit
+            </Button>
+          )}
+        </CardFooter>
+      )}
     </Card>
   );
 }
