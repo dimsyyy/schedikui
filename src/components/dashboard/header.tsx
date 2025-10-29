@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {Avatar, AvatarFallback, AvatarImage} from '../ui/avatar';
+import {cn} from '@/lib/utils';
 
 type UserProfile = {
   displayName: string;
@@ -83,15 +84,15 @@ export default function Header() {
 
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+    <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/95 px-4 shadow-sm backdrop-blur sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:shadow-none">
       <Link
         href="/"
         className="flex items-center gap-2 text-lg font-semibold md:text-base"
       >
         <Icons.Logo className="h-6 w-6 text-primary" />
-        <h1 className="text-xl font-bold tracking-tight">Schediku</h1>
+        <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Schediku</h1>
       </Link>
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex items-center gap-2">
         <ThemeToggle />
         {user && (
           <DropdownMenu>
@@ -106,7 +107,7 @@ export default function Header() {
                     src={user.photoURL || ''}
                     alt={user.displayName || ''}
                   />
-                  <AvatarFallback>
+                  <AvatarFallback className="bg-secondary text-secondary-foreground">
                     {getInitials(user.displayName)}
                   </AvatarFallback>
                 </Avatar>
@@ -124,7 +125,7 @@ export default function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

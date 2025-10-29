@@ -123,7 +123,9 @@ export default function TransactionsList({
                   className="flex items-center gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
                   style={{animationDelay: `${index * 50}ms`, animationFillMode: 'both'}}
                 >
-                  <Icon className="h-6 w-6 text-muted-foreground" />
+                  <div className="p-2 bg-muted rounded-full">
+                    <Icon className="h-5 w-5 text-muted-foreground" />
+                  </div>
                   <div className="flex-grow">
                     <p className="font-medium">{transaction.description}</p>
                     <p className="text-sm text-muted-foreground">
@@ -137,8 +139,8 @@ export default function TransactionsList({
                     className={cn(
                       'font-medium text-right',
                       transaction.type === 'income'
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                        ? 'text-emerald-500'
+                        : 'text-red-500'
                     )}
                   >
                     {transaction.type === 'income' ? '+' : '-'}{' '}

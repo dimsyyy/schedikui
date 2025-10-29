@@ -68,14 +68,14 @@ export default function BudgetSummary({
 
   return (
     <>
-      <Card className="sm:col-span-2">
+      <Card className="sm:col-span-2 bg-gradient-to-br from-primary to-secondary text-primary-foreground shadow-lg">
         <CardHeader className="pb-2">
           <div className="flex justify-center items-center text-center">
             <div>
               <CardTitle className="text-lg capitalize">
                 {format(currentMonthDate, 'MMMM yyyy', {locale: id})}
               </CardTitle>
-              <CardDescription>Ringkasan Bulanan</CardDescription>
+              <CardDescription className="text-primary-foreground/80">Ringkasan Bulanan</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -83,24 +83,25 @@ export default function BudgetSummary({
           <div className="text-4xl font-bold flex items-center justify-center gap-2">
             {formatCurrency(monthlyBudget)}
           </div>
-          <CardDescription>Total anggaran bulanan Anda.</CardDescription>
+          <CardDescription className="text-primary-foreground/80">Total anggaran bulanan Anda.</CardDescription>
         </CardContent>
 
         <CardFooter className="flex-col gap-2">
           <div className="w-full">
-            <div className="flex justify-between text-sm text-muted-foreground mb-1">
+            <div className="flex justify-between text-sm text-primary-foreground/80 mb-1">
               <span>Terpakai: {formatCurrency(totalSpent)}</span>
               <span>Sisa: {formatCurrency(remainingBudget)}</span>
             </div>
             <Progress
               value={spendingProgress}
               aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`}
+              className="bg-primary/30"
             />
           </div>
            <div className="flex w-full gap-2 pt-2">
             <Button
               variant="outline"
-              className="w-full"
+              className="w-full bg-white/20 text-white border-white/30 hover:bg-white/30"
               onClick={() => setIsSetBudgetDialogOpen(true)}
             >
               <Pencil className="h-4 w-4 mr-2" />
@@ -112,7 +113,7 @@ export default function BudgetSummary({
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>Total Pengeluaran</CardDescription>
-          <CardTitle className="text-3xl">
+          <CardTitle className="text-3xl text-destructive">
             {formatCurrency(totalSpent)}
           </CardTitle>
         </CardHeader>
@@ -127,7 +128,7 @@ export default function BudgetSummary({
           <CardDescription>Sisa Anggaran</CardDescription>
           <CardTitle
             className={`text-3xl ${
-              remainingBudget < 0 ? 'text-destructive' : 'text-accent-foreground'
+              remainingBudget < 0 ? 'text-destructive' : 'text-emerald-500'
             }`}
           >
             {formatCurrency(remainingBudget)}
@@ -142,7 +143,7 @@ export default function BudgetSummary({
             {remainingBudget < 0 ? (
               'Anda melebihi anggaran'
             ) : remainingPercentage <= 30 ? (
-              <span className="text-yellow-600 flex items-center gap-1">
+              <span className="text-amber-500 flex items-center gap-1">
                 <AlertTriangle className="h-4 w-4" />
                 Saatnya berhemat!
               </span>
