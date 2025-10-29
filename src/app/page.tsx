@@ -362,16 +362,23 @@ export default function DashboardPage() {
     }
   };
 
-
-  const loading =
-    userLoading ||
-    (user && (budgetsLoading || categoriesLoading || transactionsLoading));
+  const isDataLoading =
+    budgetsLoading ||
+    (budgetId && (categoriesLoading || transactionsLoading));
 
   // Show a loading screen while user status or data is being fetched.
-  if (loading || userLoading || !user) {
+  if (userLoading || !user) {
     return (
       <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40">
         <p>Loading...</p>
+      </div>
+    );
+  }
+  
+  if (isDataLoading) {
+     return (
+      <div className="flex min-h-screen w-full flex-col items-center justify-center bg-muted/40">
+        <p>Memuat data anggaran...</p>
       </div>
     );
   }
