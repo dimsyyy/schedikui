@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: 'Schediku',
   description:
     'Lacak pengeluaran, buat anggaran, dan dapatkan kejelasan finansial dengan Schediku.',
+  icons: {
+    icon: '/images/logo.png',
+  },
 };
 
 export default function RootLayout({
@@ -28,7 +31,6 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap"
           rel="stylesheet"
         />
-        <link rel="shortcut icon" href="images/logo.png" type="image/x-icon" />
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
