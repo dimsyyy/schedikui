@@ -34,7 +34,7 @@ export default function DashboardPage() {
 
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [isAddCategoryDialogOpen, setIsAddCategoryDialogOpen] = useState(false);
-
+  const [isQuoteFading, setIsQuoteFading] = useState(false);
 
   useEffect(() => {
     // Redirect to login if not authenticated after loading
@@ -45,7 +45,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setQuoteIndex(prevIndex => (prevIndex + 1) % FINANCIAL_QUOTES.length);
+      setIsQuoteFading(true);
+      setTimeout(() => {
+        setQuoteIndex(prevIndex => (prevIndex + 1) % FINANCIAL_QUOTES.length);
+        setIsQuoteFading(false);
+      }, 500); // Duration of the fade-out animation
     }, 10000); // Change quote every 10 seconds
 
     return () => clearInterval(interval); // Cleanup on unmount
@@ -372,7 +376,10 @@ export default function DashboardPage() {
           />
         </div>
         <div className="grid gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-100">
-          <QuoteCard quote={FINANCIAL_QUOTES[quoteIndex]} />
+          <QuoteCard
+            quote={FINANCIAL_QUOTES[quoteIndex]}
+            isFading={isQuoteFading}
+          />
         </div>
         <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3 animate-in fade-in-0 slide-in-from-bottom-4 duration-500 delay-200">
           <div className="xl:col-span-2">
