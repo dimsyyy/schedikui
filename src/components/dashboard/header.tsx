@@ -22,7 +22,7 @@ import {Avatar, AvatarFallback, AvatarImage} from '../ui/avatar';
 
 type UserProfile = {
   displayName: string;
-  username: string;
+  username?: string; // Make username optional
 };
 
 export default function Header() {
@@ -66,6 +66,22 @@ export default function Header() {
       .toUpperCase();
   };
 
+  const getDisplayUsername = () => {
+    if (userProfile?.username) {
+      return userProfile.username;
+    }
+    if (user?.email) {
+      // For old users, their email is not a dummy one
+      if (!user.email.endsWith('@schediku.app')) {
+        return user.email;
+      }
+      // For new users, derive username from dummy email
+      return user.email.split('@')[0];
+    }
+    return 'user';
+  };
+
+
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
       <Link
@@ -100,10 +116,10 @@ export default function Header() {
               <DropdownMenuLabel>
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {userProfile?.displayName}
+                    {userProfile?.displayName || user.displayName}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    @{userProfile?.username}
+                    @{getDisplayUsername()}
                   </p>
                 </div>
               </DropdownMenuLabel>
