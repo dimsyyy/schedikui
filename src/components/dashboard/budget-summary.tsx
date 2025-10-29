@@ -20,7 +20,7 @@ import {
 import {Button} from '@/components/ui/button';
 import {Input} from '@/components/ui/input';
 import {Label} from '@/components/ui/label';
-import {Pencil, AlertTriangle} from 'lucide-react';
+import {Pencil, AlertTriangle, PlusCircle} from 'lucide-react';
 import {Progress} from '../ui/progress';
 import {format} from 'date-fns';
 import {id} from 'date-fns/locale';
@@ -30,6 +30,7 @@ type BudgetSummaryProps = {
   totalSpent: number;
   totalBudgeted: number;
   onSetBudget: (amount: number) => void;
+  onAddFunds: (amount: number) => void;
 };
 
 export default function BudgetSummary({
@@ -37,18 +38,21 @@ export default function BudgetSummary({
   totalSpent,
   totalBudgeted,
   onSetBudget,
+  onAddFunds,
 }: BudgetSummaryProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSetBudgetDialogOpen, setIsSetBudgetDialogOpen] = useState(false);
+  const [isAddFundsDialogOpen, setIsAddFundsDialogOpen] = useState(false);
+
   const [newBudget, setNewBudget] = useState(monthlyBudget.toString());
+  const [additionalFunds, setAdditionalFunds] = useState('');
 
   const remainingBudget = monthlyBudget - totalSpent;
   const spendingProgress =
     monthlyBudget > 0 ? (totalSpent / monthlyBudget) * 100 : 0;
   const remainingPercentage =
     monthlyBudget > 0 ? (remainingBudget / monthlyBudget) * 100 : 100;
-  
-  const currentMonthDate = useMemo(() => new Date(), []);
 
+  const currentMonthDate = useMemo(() => new Date(), []);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -59,12 +63,21 @@ export default function BudgetSummary({
     }).format(amount);
   };
 
-  const handleSave = () => {
+  const handleSaveBudget = () => {
     const amount = parseFloat(newBudget);
     if (!isNaN(amount)) {
       onSetBudget(amount);
     }
-    setIsDialogOpen(false);
+    setIsSetBudgetDialogOpen(false);
+  };
+
+  const handleSaveFunds = () => {
+    const amount = parseFloat(additionalFunds);
+    if (!isNaN(amount) && amount > 0) {
+      onAddFunds(amount);
+    }
+    setIsAddFundsDialogOpen(false);
+    setAdditionalFunds('');
   };
 
   return (
@@ -83,18 +96,11 @@ export default function BudgetSummary({
         <CardContent className="text-center">
           <div className="text-4xl font-bold flex items-center justify-center gap-2">
             {formatCurrency(monthlyBudget)}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setIsDialogOpen(true)}
-            >
-              <Pencil className="h-4 w-4" />
-            </Button>
           </div>
           <CardDescription>Total anggaran bulanan Anda.</CardDescription>
         </CardContent>
-        <CardFooter>
+
+        <CardFooter className="flex-col gap-2">
           <div className="w-full">
             <div className="flex justify-between text-sm text-muted-foreground mb-1">
               <span>Terpakai: {formatCurrency(totalSpent)}</span>
@@ -104,6 +110,24 @@ export default function BudgetSummary({
               value={spendingProgress}
               aria-label={`${spendingProgress.toFixed(0)}% dari anggaran terpakai`}
             />
+          </div>
+          <div className="flex w-full gap-2 pt-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setIsSetBudgetDialogOpen(true)}
+            >
+              <Pencil className="h-4 w-4 mr-2" />
+              Atur Anggaran
+            </Button>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => setIsAddFundsDialogOpen(true)}
+            >
+              <PlusCircle className="h-4 w-4 mr-2" />
+              Tambah Dana
+            </Button>
           </div>
         </CardFooter>
       </Card>
@@ -151,13 +175,14 @@ export default function BudgetSummary({
         </CardContent>
       </Card>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      {/* Set Budget Dialog */}
+      <Dialog open={isSetBudgetDialogOpen} onOpenChange={setIsSetBudgetDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Atur Anggaran Bulanan</DialogTitle>
             <DialogDescription>
               Masukkan total pendapatan atau jumlah yang ingin Anda anggarkan
-              untuk bulan ini.
+              untuk bulan ini. Ini akan menggantikan nilai anggaran saat ini.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -176,10 +201,53 @@ export default function BudgetSummary({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsSetBudgetDialogOpen(false)}
+            >
               Batal
             </Button>
-            <Button onClick={handleSave}>Simpan</Button>
+            <Button onClick={handleSaveBudget}>Simpan</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Funds Dialog */}
+      <Dialog open={isAddFundsDialogOpen} onOpenChange={setIsAddFundsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Tambah Dana Tambahan</DialogTitle>
+            <DialogDescription>
+              Masukkan jumlah dana yang ingin ditambahkan ke anggaran bulan
+              ini.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="add-funds" className="text-right">
+                Jumlah
+              </Label>
+              <Input
+                id="add-funds"
+                type="number"
+                value={additionalFunds}
+                onChange={e => setAdditionalFunds(e.target.value)}
+                className="col-span-3"
+                placeholder="cth: 500000"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddFundsDialogOpen(false);
+                setAdditionalFunds('');
+              }}
+            >
+              Batal
+            </Button>
+            <Button onClick={handleSaveFunds}>Tambah</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

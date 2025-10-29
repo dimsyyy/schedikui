@@ -12,6 +12,7 @@ import {
   where,
   writeBatch,
   getDocs,
+  increment,
 } from 'firebase/firestore';
 import type {Category, Transaction, Budget} from '@/lib/types';
 import {useFirestore, useUser, useCollection} from '@/firebase';
@@ -53,7 +54,7 @@ export default function DashboardPage() {
 
   // Ensure queries are only created when user and firestore are available
   const budgetQuery = useMemo(() => {
-    if (user && firestore) {
+    if (user && firestore && !userLoading) {
       return query(
         collection(firestore, 'budgets'),
         where('userId', '==', user.uid),
@@ -61,7 +62,7 @@ export default function DashboardPage() {
       );
     }
     return null;
-  }, [user, firestore, monthKey]);
+  }, [user, firestore, monthKey, userLoading]);
 
   const {
     data: budgets,
@@ -165,6 +166,27 @@ export default function DashboardPage() {
         toast({
           title: 'Gagal',
           description: 'Gagal memperbarui anggaran bulanan.',
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
+  const handleAddFunds = async (amount: number) => {
+    if (budgetId && firestore) {
+      try {
+        await updateDoc(doc(firestore, 'budgets', budgetId), {
+          monthlyBudget: increment(amount),
+        });
+        toast({
+          title: 'Sukses',
+          description: 'Dana tambahan berhasil ditambahkan ke anggaran.',
+        });
+      } catch (error) {
+        console.error('Error adding funds:', error);
+        toast({
+          title: 'Gagal',
+          description: 'Gagal menambahkan dana tambahan.',
           variant: 'destructive',
         });
       }
@@ -322,7 +344,9 @@ export default function DashboardPage() {
     }
   };
 
-  const loading = userLoading || (user && (budgetsLoading || categoriesLoading || transactionsLoading));
+  const loading =
+    userLoading ||
+    (user && (budgetsLoading || categoriesLoading || transactionsLoading));
 
   // Show a loading screen while user status or data is being fetched.
   if (loading || userLoading || !user) {
@@ -357,6 +381,7 @@ export default function DashboardPage() {
             totalSpent={totalSpent}
             totalBudgeted={totalBudgeted}
             onSetBudget={handleSetBudget}
+            onAddFunds={handleAddFunds}
           />
         </div>
         <div className="grid gap-4">

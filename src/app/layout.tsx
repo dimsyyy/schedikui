@@ -5,7 +5,7 @@ import {Toaster} from '@/components/ui/toaster';
 import {FirebaseClientProvider} from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
-  title: 'Schediku - Asisten Anggaran Pribadi Anda',
+  title: 'Schediku',
   description:
     'Lacak pengeluaran, buat anggaran, dan dapatkan kejelasan finansial dengan Schediku.',
 };
