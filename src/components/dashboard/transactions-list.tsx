@@ -107,13 +107,22 @@ export default function TransactionsList({
           />
         </Dialog>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent
+        className={cn(
+          'flex-grow overflow-hidden transition-[max-height] duration-500 ease-in-out',
+          visibleCount === 5 ? 'max-h-[300px]' : 'max-h-[1000px]'
+        )}
+      >
         {sortedTransactions.length > 0 ? (
           <div className="space-y-4">
             {displayedTransactions.map((transaction, index) => {
               const Icon = getCategoryIcon(transaction);
               return (
-                <div key={transaction.id} className="flex items-center gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}>
+                <div
+                  key={transaction.id}
+                  className="flex items-center gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500"
+                  style={{animationDelay: `${index * 50}ms`, animationFillMode: 'both'}}
+                >
                   <Icon className="h-6 w-6 text-muted-foreground" />
                   <div className="flex-grow">
                     <p className="font-medium">{transaction.description}</p>
@@ -186,11 +195,7 @@ function AddTransactionDialog({
   const {toast} = useToast();
 
   const handleConfirmAdd = () => {
-    if (
-      !amount ||
-      !description ||
-      (type === 'expense' && !categoryId)
-    ) {
+    if (!amount || !description || (type === 'expense' && !categoryId)) {
       toast({
         title: 'Informasi Kurang',
         description: 'Harap isi semua kolom yang diperlukan.',
@@ -214,7 +219,7 @@ function AddTransactionDialog({
     setCategoryId('');
     setType('expense');
   };
-  
+
   const handleCreateCategoryClick = () => {
     setIsOpen(false); // Close current dialog
     onAddCategoryClick(); // Open category dialog
@@ -274,7 +279,7 @@ function AddTransactionDialog({
             <div className="space-y-2">
               <Label htmlFor="category">Kategori</Label>
               {categories.length > 0 ? (
-                 <Select onValueChange={setCategoryId} value={categoryId}>
+                <Select onValueChange={setCategoryId} value={categoryId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Pilih kategori" />
                   </SelectTrigger>
@@ -287,7 +292,11 @@ function AddTransactionDialog({
                   </SelectContent>
                 </Select>
               ) : (
-                <Button variant="outline" className="w-full justify-start text-muted-foreground" onClick={handleCreateCategoryClick}>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-muted-foreground"
+                  onClick={handleCreateCategoryClick}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Buat Kategori Dulu
                 </Button>
