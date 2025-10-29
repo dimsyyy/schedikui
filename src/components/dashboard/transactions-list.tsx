@@ -110,10 +110,10 @@ export default function TransactionsList({
       <CardContent className="flex-grow">
         {sortedTransactions.length > 0 ? (
           <div className="space-y-4">
-            {displayedTransactions.map(transaction => {
+            {displayedTransactions.map((transaction, index) => {
               const Icon = getCategoryIcon(transaction);
               return (
-                <div key={transaction.id} className="flex items-center gap-4">
+                <div key={transaction.id} className="flex items-center gap-4 animate-in fade-in-0 slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}>
                   <Icon className="h-6 w-6 text-muted-foreground" />
                   <div className="flex-grow">
                     <p className="font-medium">{transaction.description}</p>
