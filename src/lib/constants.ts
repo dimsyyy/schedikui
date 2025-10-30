@@ -7,6 +7,7 @@ export const DEFAULT_CATEGORIES: DefaultCategory[] = [
   {id: 'food', name: 'Makanan/Minuman', iconName: 'UtensilsCrossed'},
   {id: 'entertainment', name: 'Hiburan', iconName: 'Ticket'},
   {id: 'health', name: 'Kesehatan', iconName: 'HeartPulse'},
+  {id: 'supplies', name: 'Perlengkapan', iconName: 'Box'},
   {id: 'other', name: 'Lainnya', iconName: 'Sparkles'},
 ];
 
